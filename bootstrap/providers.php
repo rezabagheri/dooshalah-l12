@@ -3,6 +3,5 @@
 return [
     App\Providers\AppServiceProvider::class,
     App\Providers\AuthServiceProvider::class,
-    //App\Providers\FolioServiceProvider::class,
-    //App\Providers\VoltServiceProvider::class,
+    App\Providers\VoltServiceProvider::class,
 ];
