@@ -1,11 +1,13 @@
 <?php
 use Livewire\Volt\Component;
 
-new class extends Component {};
+new class extends Component {
+    public string $bodyClass = ''; // متغیر پیش‌فرض
+};
 ?>
 
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ in_array(app()->getLocale(), ['fa', 'aii', 'ar', 'he']) ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,17 +16,8 @@ new class extends Component {};
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="hold-transition login-page">
-    <div class="login-box">
-        <div class="card card-outline card-primary">
-            <div class="card-header text-center">
-                <a href="{{ url('/') }}" class="h1"><b>My</b>App</a>
-            </div>
-            <div class="card-body">
-                {{ $slot }}
-            </div>
-        </div>
-    </div>
+<body class="{{ $bodyClass ?? $attributes->get('body-class', '') }}">
+    {{ $slot }}
     @livewireScripts
 </body>
 </html>
