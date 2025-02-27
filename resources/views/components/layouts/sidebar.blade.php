@@ -10,13 +10,34 @@
         <nav class="mt-2">
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
                 @foreach ($menuItems as $item)
-                    <li class="nav-item">
-                        <a href="{{ $item['route'] === '#' ? '#' : route($item['route']) }}"
-                           class="nav-link {{ request()->routeIs($item['route']) ? 'active' : '' }}">
-                            <i class="nav-icon {{ $item['icon'] }}"></i>
-                            <p>{{ $item['label'] }}</p>
+                    <li class="nav-item {{ $item->children->isNotEmpty() ? 'menu-open' : '' }}">
+                        <a href="{{ $item->route === '#' ? '#' : route($item->route) }}"
+                           class="nav-link {{ request()->routeIs($item->route) ? 'active' : '' }}">
+                            <i class="nav-icon {{ $item->icon }}"></i>
+                            <p>
+                                {{ $item->label }}
+                                @if ($item->children->isNotEmpty())
+                                    <i class="bi bi-chevron-down right"></i>
+                                @endif
+                            </p>
                         </a>
+                        @if ($item->children->isNotEmpty())
+                            <ul class="nav nav-treeview">
+                                @foreach ($item->children as $child)
+                                    <li class="nav-item">
+                                        <a href="{{ $child->route === '#' ? '#' : route($child->route) }}"
+                                           class="nav-link {{ request()->routeIs($child->route) ? 'active' : '' }}">
+                                            <i class="nav-icon {{ $child->icon }}"></i>
+                                            <p>{{ $child->label }}</p>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
                     </li>
+                    @if ($item->has_divider)
+                        <li class="nav-item"><div class="dropdown-divider"></div></li>
+                    @endif
                 @endforeach
             </ul>
         </nav>
