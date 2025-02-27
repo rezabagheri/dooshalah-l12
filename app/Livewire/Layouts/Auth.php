@@ -18,6 +18,13 @@ class Auth extends Component
     {
         return view('components.layouts.auth', [
             'bodyClass' => $this->bodyClass,
+        ])->layout('components.layouts.clean', [
+            'bodyClass' => $this->bodyClass,
         ]);
+    }
+
+    public static function layoutName(): string
+    {
+        return 'livewire.auth-layout';
     }
 }

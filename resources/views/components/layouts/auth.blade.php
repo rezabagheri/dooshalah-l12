@@ -1,8 +1,4 @@
-<?php
-$bodyClass = 'login-page bg-body-secondary';
-?>
-
-<x-layouts.clean body-class="{{ $bodyClass }}">
+<x-layouts.clean :body-class="$bodyClass">
     <div class="login-box">
         <div class="card card-outline card-primary">
             <div class="card-header text-center">

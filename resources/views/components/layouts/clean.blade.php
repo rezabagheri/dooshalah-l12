@@ -2,7 +2,7 @@
 use Livewire\Volt\Component;
 
 new class extends Component {
-    public string $bodyClass = ''; // متغیر پیش‌فرض
+    public string $bodyClass = '';
 };
 ?>
 
