@@ -16,7 +16,6 @@ class MediaSeeder extends Seeder
 {
     private const SOURCE_IMAGE_PATH = 'images';
     private const DESTINATION_PATH = 'public/user-profiles';
-    private const DEFAULT_MIME_TYPE = 'image/jpeg';
 
     public function run(): void
     {
@@ -71,10 +70,10 @@ class MediaSeeder extends Seeder
                     }
 
                     $media = Media::create([
-                        'path' => self::DESTINATION_PATH . '/' . $albumImageName,
+                        'path' => 'user-profiles/' . $albumImageName, // فقط user-profiles/ و اسم فایل
                         'original_name' => $albumImage,
                         'type' => 'image',
-                        'mime_type' => self::DEFAULT_MIME_TYPE,
+                        'mime_type' => 'image/jpeg',
                         'size' => filesize($destinationFullPath),
                     ]);
 
