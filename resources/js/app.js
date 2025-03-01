@@ -1,3 +1,4 @@
+// resources/js/app.js
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'admin-lte/dist/js/adminlte';
 
@@ -5,7 +6,6 @@ window.bootstrap = bootstrap;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Bootstrap and AdminLTE loaded');
-
     const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
     dropdownElementList.forEach(dropdown => new window.bootstrap.Dropdown(dropdown));
 });
@@ -38,6 +38,22 @@ document.addEventListener('livewire:init', () => {
 
     Livewire.on('profile-picture-updated', () => {
         showToast('Profile picture updated successfully', 'success');
+    });
+
+    Livewire.on('profile-updated', (event) => {
+        showToast(`Profile updated successfully for ${event.name}`, 'success');
+    });
+
+    Livewire.on('verification-link-sent', () => {
+        showToast('A new verification link has been sent to your email address.', 'info');
+    });
+
+    Livewire.on('password-updated', () => {
+        showToast('Password updated successfully', 'success');
+    });
+
+    Livewire.on('interests-updated', () => {
+        showToast('Your interests have been updated successfully', 'success');
     });
 
     Livewire.on('error', (message) => {

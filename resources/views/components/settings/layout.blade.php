@@ -1,3 +1,4 @@
+<!-- resources/views/components/settings/layout.blade.php -->
 <div class="row">
     <!-- Sidebar Navigation -->
     <div class="col-md-3">
@@ -45,6 +46,13 @@
                            class="nav-link {{ request()->routeIs('settings.appearance') ? 'active' : '' }}"
                            wire:navigate>
                             <i class="nav-icon bi bi-palette"></i> Appearance
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('settings.interests') }}"
+                           class="nav-link {{ request()->routeIs('settings.interests') ? 'active' : '' }}"
+                           wire:navigate>
+                            <i class="nav-icon bi bi-heart"></i> Interests
                         </a>
                     </li>
                 </ul>

@@ -29,6 +29,8 @@ class DatabaseSeeder extends Seeder
             PlanFeatureSeeder::class,
             SubscriptionsSeeder::class,
             PaymentSeeder::class,
+            QuestionSeeder::class,
+            UserAnswersSeeder::class,
 
         ]);
     }

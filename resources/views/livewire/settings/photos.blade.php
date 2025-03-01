@@ -14,7 +14,6 @@ new class extends Component {
     #[Validate('image|max:10240')]
     public $photo;
     public $photoToDelete = null;
-    public $photoPreview = null; // متغیر جدید برای پیش‌نمایش
 
     public function uploadPhoto(): void
     {
@@ -51,21 +50,12 @@ new class extends Component {
                 'order' => $user->media()->count(),
             ]);
 
-            $this->reset(['photo', 'photoPreview']); // ریست پیش‌نمایش بعد از آپلود
+            $this->reset(['photo']); // ریست بعد از آپلود
             $this->dispatch('photo-uploaded');
         } catch (\Exception $e) {
             \Log::error('Photo upload failed: ' . $e->getMessage());
             $this->dispatch('error', 'Failed to upload the photo: ' . $e->getMessage());
             return;
-        }
-    }
-
-    public function updatedPhoto($value): void
-    {
-        // وقتی فایل انتخاب می‌شه، پیش‌نمایش رو آپدیت می‌کنیم
-        if ($this->photo) {
-            $this->photoPreview = null; // ریست موقت
-            $this->dispatch('preview-photo');
         }
     }
 
@@ -130,9 +120,9 @@ new class extends Component {
                                 <i class="bi bi-upload me-1"></i> {{ __('Upload') }}
                             </button>
                         </div>
-                        @if ($photoPreview)
+                        @if ($photo)
                             <div class="mt-2" id="photo-preview" style="max-height: 200px;">
-                                <img src="{{ $photoPreview }}" class="img-fluid" alt="Photo Preview">
+                                <img src="{{ $photo->temporaryUrl() }}" class="img-fluid" alt="Photo Preview">
                             </div>
                         @endif
                         @error('photo') <span class="text-danger mt-1 d-block">{{ $message }}</span> @enderror
@@ -196,21 +186,4 @@ new class extends Component {
             </div>
         </div>
     </div>
-
-    @script
-    <script>
-        document.getElementById('photo').addEventListener('change', function(event) {
-            console.log('File input changed');
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    console.log('File loaded: ', e.target.result);
-                    $wire.set('photoPreview', e.target.result); // آپدیت متغیر Livewire
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    </script>
-    @endscript
 </x-settings.layout>
