@@ -8,7 +8,7 @@ use Illuminate\Contracts\View\View;
 
 class Dashboard extends Component
 {
-    public string $bodyClass = 'dashboard-page'; // متغیر برای Dashboard
+    public string $bodyClass = 'dashboard-page';
 
     #[Layout('components.layouts.app')]
     public function render(): View

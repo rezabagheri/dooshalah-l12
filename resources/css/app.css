@@ -2,3 +2,57 @@
 @import 'bootstrap-icons/font/bootstrap-icons.scss';
 @import 'admin-lte/dist/css/adminlte.css';
 
+.ribbon-wrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+}
+
+.ribbon {
+    position: absolute;
+    top: 10px;
+    right: -30px;
+    width: 120px;
+    text-align: center;
+    transform: rotate(45deg);
+    padding: 5px 0;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.5;
+    z-index: 10; /* مطمئن می‌شه بالای عکس باشه */
+}
+
+/* رنگ‌های مختلف برای ribbon */
+.bg-warning .ribbon {
+    background-color: #ffc107;
+}
+
+
+.card-img-top {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-img-top img {
+    max-height: 200px; /* حداکثر ارتفاع */
+    width: 100%; /* عرض کامل */
+    object-fit: contain; /* کل عکس بدون برش */
+}
+
+.card-hover-effect {
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.card-hover-effect:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-not-approved {
+    opacity: 0.8;
+}
+.card-not-approved:hover {
+    opacity: 1;
+}

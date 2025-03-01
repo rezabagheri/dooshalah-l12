@@ -22,6 +22,8 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Volt::route('settings/security', 'settings.security')->name('settings.security');
+    Volt::route('settings/photos', 'settings.photos')->name('settings.photos');
 
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::post('/logout', fn() => auth()->logout() && redirect('/login'))->name('logout');

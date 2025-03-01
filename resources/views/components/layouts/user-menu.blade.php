@@ -19,7 +19,7 @@
             </div>
         </li>
         <li class="user-footer">
-            <a href="#" class="btn btn-default btn-flat">Profile</a>
+            <a href="{{ route('settings.profile') }}" class="btn btn-default btn-flat">Profile</a>
             <form method="POST" action="{{ route('logout') }}" class="d-inline">
                 @csrf
                 <button type="submit" class="btn btn-default btn-flat float-end">Logout</button>

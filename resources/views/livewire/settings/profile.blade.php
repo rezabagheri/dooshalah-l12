@@ -15,9 +15,6 @@ new class extends Component {
     public string $phone_number = '';
     public string $birth_date = '';
 
-    /**
-     * Mount the component.
-     */
     public function mount(): void
     {
         $user = Auth::user();
@@ -30,9 +27,6 @@ new class extends Component {
         $this->birth_date = $user->birth_date->format('Y-m-d');
     }
 
-    /**
-     * Update the profile information for the currently authenticated user.
-     */
     public function updateProfileInformation(): void
     {
         $user = Auth::user();
@@ -70,9 +64,6 @@ new class extends Component {
         $this->dispatch('profile-updated', name: $user->display_name);
     }
 
-    /**
-     * Send an email verification notification to the current user.
-     */
     public function resendVerificationNotification(): void
     {
         $user = Auth::user();
@@ -88,48 +79,80 @@ new class extends Component {
     }
 }; ?>
 
-<section class="w-full">
-    @include('partials.settings-heading')
-
-    <x-settings.layout heading="Profile" subheading="Update your personal information">
-        <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="first_name" label="{{ __('First Name') }}" type="text" name="first_name" required autofocus autocomplete="given-name" />
-            <flux:input wire:model="middle_name" label="{{ __('Middle Name') }}" type="text" name="middle_name" autocomplete="additional-name" />
-            <flux:input wire:model="last_name" label="{{ __('Last Name') }}" type="text" name="last_name" required autocomplete="family-name" />
-            <flux:input wire:model="display_name" label="{{ __('Display Name') }}" type="text" name="display_name" required autocomplete="nickname" />
-            <flux:input wire:model="email" label="{{ __('Email') }}" type="email" name="email" required autocomplete="email" />
-
-            @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
-                <div>
-                    <p class="mt-2 text-sm text-gray-800">
+<x-settings.layout heading="Profile" subheading="Update your personal information">
+    <form wire:submit="updateProfileInformation" class="form-horizontal">
+        <div class="row mb-3">
+            <label for="first_name" class="col-sm-3 col-form-label">{{ __('First Name') }}</label>
+            <div class="col-sm-9">
+                <input wire:model="first_name" type="text" class="form-control" id="first_name" required autofocus autocomplete="given-name">
+                @error('first_name') <span class="text-danger">{{ $message }}</span> @enderror
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="middle_name" class="col-sm-3 col-form-label">{{ __('Middle Name') }}</label>
+            <div class="col-sm-9">
+                <input wire:model="middle_name" type="text" class="form-control" id="middle_name" autocomplete="additional-name">
+                @error('middle_name') <span class="text-danger">{{ $message }}</span> @enderror
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="last_name" class="col-sm-3 col-form-label">{{ __('Last Name') }}</label>
+            <div class="col-sm-9">
+                <input wire:model="last_name" type="text" class="form-control" id="last_name" required autocomplete="family-name">
+                @error('last_name') <span class="text-danger">{{ $message }}</span> @enderror
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="display_name" class="col-sm-3 col-form-label">{{ __('Display Name') }}</label>
+            <div class="col-sm-9">
+                <input wire:model="display_name" type="text" class="form-control" id="display_name" required autocomplete="nickname">
+                @error('display_name') <span class="text-danger">{{ $message }}</span> @enderror
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="email" class="col-sm-3 col-form-label">{{ __('Email') }}</label>
+            <div class="col-sm-9">
+                <input wire:model="email" type="email" class="form-control" id="email" required autocomplete="email">
+                @error('email') <span class="text-danger">{{ $message }}</span> @enderror
+                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
+                    <p class="text-sm text-gray-600 mt-2">
                         {{ __('Your email address is unverified.') }}
                         <button wire:click.prevent="resendVerificationNotification"
-                                class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                class="btn btn-link p-0 text-sm">
                             {{ __('Click here to re-send the verification email.') }}
                         </button>
                     </p>
                     @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 text-sm font-medium text-green-600">
+                        <p class="text-sm text-success mt-2">
                             {{ __('A new verification link has been sent to your email address.') }}
                         </p>
                     @endif
-                </div>
-            @endif
-
-            <flux:input wire:model="phone_number" label="{{ __('Phone Number') }}" type="tel" name="phone_number" required autocomplete="tel" />
-            <flux:input wire:model="birth_date" label="{{ __('Birth Date') }}" type="date" name="birth_date" required />
-
-            <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
-                </div>
-
-                <x-action-message class="me-3" on="profile-updated">
+                @endif
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="phone_number" class="col-sm-3 col-form-label">{{ __('Phone Number') }}</label>
+            <div class="col-sm-9">
+                <input wire:model="phone_number" type="tel" class="form-control" id="phone_number" required autocomplete="tel">
+                @error('phone_number') <span class="text-danger">{{ $message }}</span> @enderror
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="birth_date" class="col-sm-3 col-form-label">{{ __('Birth Date') }}</label>
+            <div class="col-sm-9">
+                <input wire:model="birth_date" type="date" class="form-control" id="birth_date" required>
+                @error('birth_date') <span class="text-danger">{{ $message }}</span> @enderror
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-9 offset-sm-3">
+                <button type="submit" class="btn btn-primary">
+                    {{ __('Save') }}
+                </button>
+                <x-action-message class="ms-3" on="profile-updated">
                     {{ __('Saved.') }}
                 </x-action-message>
             </div>
-        </form>
-
-        <livewire:settings.delete-user-form />
-    </x-settings.layout>
-</section>
+        </div>
+    </form>
+</x-settings.layout>
