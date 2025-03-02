@@ -17,6 +17,7 @@ Route::view('dashboard', 'dashboard')
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/plans/upgrade', \App\Livewire\PlansUpgrade::class)->name('plans.upgrade');
     Route::redirect('settings', 'settings/profile');
 
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
@@ -27,14 +28,27 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/interests', 'settings.interests')->name('settings.interests');
 
     // Friends Routes
-    Route::get('/friends', \App\Livewire\FriendsIndex::class)->name('friends.index');
-    Route::get('/friends/my-friends', \App\Livewire\FriendsIndex::class)->name('friends.my-friends');
-    Route::get('/friends/pending', \App\Livewire\FriendsIndex::class)->name('friends.pending');
-    Route::get('/friends/received', \App\Livewire\FriendsIndex::class)->name('friends.received');
-    Route::get('/friends/blocked', \App\Livewire\FriendsIndex::class)->name('friends.blocked');
-    Route::get('/friends/reports', \App\Livewire\FriendsIndex::class)->name('friends.reports');
-    Route::get('/friends/suggestions', \App\Livewire\FriendsIndex::class)->name('friends.suggestions');
-
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/friends', \App\Livewire\FriendsIndex::class)->name('friends.index');
+        Route::get('/friends/suggestions', \App\Livewire\FriendsIndex::class)
+            ->middleware('feature:view_suggestions')
+            ->name('friends.suggestions');
+        Route::get('/friends/my-friends', \App\Livewire\FriendsIndex::class)
+            ->middleware('feature:view_suggestions') // حداقل برای دیدن دوستان
+            ->name('friends.my-friends');
+        Route::get('/friends/pending', \App\Livewire\FriendsIndex::class)
+            ->middleware('feature:send_request')
+            ->name('friends.pending');
+        Route::get('/friends/received', \App\Livewire\FriendsIndex::class)
+            ->middleware('feature:accept_request')
+            ->name('friends.received');
+        Route::get('/friends/blocked', \App\Livewire\FriendsIndex::class)
+            ->middleware('feature:block_user')
+            ->name('friends.blocked');
+        Route::get('/friends/reports', \App\Livewire\FriendsIndex::class)
+            ->middleware('feature:report_user')
+            ->name('friends.reports');
+    });
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::post('/logout', fn() => auth()->logout() && redirect('/login'))->name('logout');
 });

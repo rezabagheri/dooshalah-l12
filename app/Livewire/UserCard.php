@@ -7,6 +7,7 @@ use App\Enums\Gender;
 use App\Models\Block;
 use App\Models\Friendship;
 use App\Models\Report;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserAnswer;
 use App\Models\UserMatchScore;
@@ -48,8 +49,25 @@ class UserCard extends Component
             ->value('match_score') ?? 0;
     }
 
+    private function hasFeatureAccess($feature): bool
+    {
+        $activeSubscription = Subscription::where('user_id', auth()->id())
+            ->where('status', 'active')
+            ->where('end_date', '>=', now())
+            ->first();
+
+        return $activeSubscription && $activeSubscription->plan->features()
+            ->where('name', $feature)
+            ->exists();
+    }
+
     public function sendFriendshipRequest(): void
     {
+        if (!$this->hasFeatureAccess('send_request')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to send friend requests.');
+            return;
+        }
+
         Friendship::create([
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,
@@ -61,6 +79,11 @@ class UserCard extends Component
 
     public function acceptFriendship(): void
     {
+        if (!$this->hasFeatureAccess('accept_request')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to accept friend requests.');
+            return;
+        }
+
         if ($this->friendship && $this->friendship->user_id === $this->user->id) {
             $this->friendship->update(['status' => FriendshipStatus::Accepted->value]);
             $this->dispatch('friendship-accepted');
@@ -70,6 +93,11 @@ class UserCard extends Component
 
     public function rejectFriendship(): void
     {
+        if (!$this->hasFeatureAccess('accept_request')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to reject friend requests.');
+            return;
+        }
+
         if ($this->friendship && $this->friendship->user_id === $this->user->id) {
             $this->friendship->update(['status' => FriendshipStatus::Rejected->value]);
             $this->dispatch('friendship-rejected');
@@ -79,6 +107,11 @@ class UserCard extends Component
 
     public function cancelFriendship(): void
     {
+        if (!$this->hasFeatureAccess('send_request')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to cancel friend requests.');
+            return;
+        }
+
         if ($this->friendship && $this->friendship->user_id === auth()->user()->id) {
             $this->friendship->delete();
             $this->dispatch('friendship-cancelled');
@@ -88,6 +121,11 @@ class UserCard extends Component
 
     public function unfriend(): void
     {
+        if (!$this->hasFeatureAccess('remove_friend')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to remove friends.');
+            return;
+        }
+
         if ($this->friendship && $this->friendship->status === FriendshipStatus::Accepted) {
             $this->friendship->delete();
             $this->dispatch('friendship-removed');
@@ -97,6 +135,11 @@ class UserCard extends Component
 
     public function block(): void
     {
+        if (!$this->hasFeatureAccess('block_user')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to block users.');
+            return;
+        }
+
         Block::create([
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,
@@ -110,6 +153,11 @@ class UserCard extends Component
 
     public function unblock(): void
     {
+        if (!$this->hasFeatureAccess('block_user')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to unblock users.');
+            return;
+        }
+
         if ($this->block) {
             $this->block->delete();
             $this->dispatch('user-unblocked');
@@ -119,6 +167,11 @@ class UserCard extends Component
 
     public function report(): void
     {
+        if (!$this->hasFeatureAccess('report_user')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to report users.');
+            return;
+        }
+
         Report::create([
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,

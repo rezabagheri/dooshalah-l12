@@ -108,7 +108,7 @@ class FriendsIndex extends Component
                 now()->subYears($currentUserAge),
                 now()->subYears($currentUserAge - 10),
             ])
-            ->whereNotIn('users.id', $excludedIds) // مشخص کردن جدول users
+            ->whereNotIn('users.id', $excludedIds)
             ->join('user_match_scores', function ($join) use ($currentUser) {
                 $join->on('users.id', '=', 'user_match_scores.target_id')
                      ->where('user_match_scores.user_id', $currentUser->id);
