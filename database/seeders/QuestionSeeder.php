@@ -33,6 +33,7 @@ class QuestionSeeder extends Seeder
                         'answer_type' => $record['answer_type'],
                         'search_label' => $record['search_label'],
                         'answer_label' => $record['answer_label'],
+                        'weight' => $record['weight'] ?? 1, // پیش‌فرض 1 اگه توی CSV نباشه
                         'is_required' => filter_var($record['is_required'], FILTER_VALIDATE_BOOLEAN),
                         'is_editable' => filter_var($record['is_editable'], FILTER_VALIDATE_BOOLEAN),
                         'category' => $record['category'],

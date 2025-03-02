@@ -17,6 +17,7 @@ class Question extends Model
         'category',
         'search_label',
         'answer_label',
+        'weight',
         'is_required',
         'is_editable',
         'is_visible',

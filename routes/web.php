@@ -26,6 +26,13 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/photos', 'settings.photos')->name('settings.photos');
     Volt::route('settings/interests', 'settings.interests')->name('settings.interests');
 
+    // Friends Routes
+    Route::get('/friends', \App\Livewire\FriendsIndex::class)->name('friends.index');
+    Route::get('/friends/my-friends', \App\Livewire\FriendsIndex::class)->name('friends.my-friends');
+    Route::get('/friends/pending', \App\Livewire\FriendsIndex::class)->name('friends.pending');
+    Route::get('/friends/received', \App\Livewire\FriendsIndex::class)->name('friends.received');
+    Route::get('/friends/blocked', \App\Livewire\FriendsIndex::class)->name('friends.blocked');
+    Route::get('/friends/reports', \App\Livewire\FriendsIndex::class)->name('friends.reports');
 
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::post('/logout', fn() => auth()->logout() && redirect('/login'))->name('logout');
