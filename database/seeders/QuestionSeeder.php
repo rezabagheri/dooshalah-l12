@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\AnswerType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,20 +26,11 @@ class QuestionSeeder extends Seeder
         DB::transaction(function () use ($records) {
             foreach ($records as $record) {
                 try {
-                    // چک کردن مقدار answer_type با Enum
-                    $answerType = match ($record['answer_type']) {
-                        'string', 'number' => AnswerType::String->value, // number رو به string تبدیل می‌کنیم
-                        'boolean' => AnswerType::Boolean->value,
-                        'single' => AnswerType::Single->value,
-                        'multiple' => AnswerType::Multiple->value,
-                        default => throw new \Exception('Invalid answer_type: ' . $record['answer_type']),
-                    };
-
                     $questionId = DB::table('questions')->insertGetId([
                         'page' => $record['page'],
                         'order_in_page' => $record['order_in_page'],
                         'question' => $record['question'],
-                        'answer_type' => $answerType,
+                        'answer_type' => $record['answer_type'],
                         'search_label' => $record['search_label'],
                         'answer_label' => $record['answer_label'],
                         'is_required' => filter_var($record['is_required'], FILTER_VALIDATE_BOOLEAN),
@@ -52,7 +42,7 @@ class QuestionSeeder extends Seeder
                     ]);
 
                     if (!empty($record['options'])) {
-                        $options = preg_split('/,\s*(?![^"]*")/', $record['options']);
+                        $options = explode(',', $record['options']);
                         foreach ($options as $index => $option) {
                             $option = trim($option);
                             if (!empty($option)) {

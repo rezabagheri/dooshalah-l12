@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->foreignId('question_id')->constrained('questions')->onDelete('cascade')
                 ->comment('Foreign key referencing the questions table');
             $table->string('option_value')->comment('The value or text of the option');
-            $table->string('option_key')->nullable()->comment('Short key for the option (e.g., "pizza" for "Pizza")'); // unique حذف شده
+            $table->string('option_key')->nullable()->comment('Short key for the option (e.g., "pizza" for "Pizza")');
             $table->unsignedInteger('order_in_question')->nullable()->comment('Order of the option in the question');
             $table->timestamps();
         });

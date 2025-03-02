@@ -16,7 +16,6 @@ class QuestionOption extends Model
         'order_in_question',
     ];
 
-    // رابط با Question (هر گزینه متعلق به یک پرسش است)
     public function question()
     {
         return $this->belongsTo(Question::class, 'question_id');

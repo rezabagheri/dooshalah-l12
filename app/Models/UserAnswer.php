@@ -16,16 +16,14 @@ class UserAnswer extends Model
     ];
 
     protected $casts = [
-        'answer' => 'array', // JSON به‌صورت آرایه کست می‌شه
+        'answer' => 'array',
     ];
 
-    // رابط با User (هر جواب متعلق به یک کاربر است)
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // رابط با Question (هر جواب متعلق به یک پرسش است)
     public function question()
     {
         return $this->belongsTo(Question::class, 'question_id');

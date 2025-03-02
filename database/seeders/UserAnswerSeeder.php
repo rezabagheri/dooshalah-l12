@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\AnswerType;
 use App\Models\Question;
 use App\Models\User;
 use App\Models\UserAnswer;
@@ -55,28 +54,33 @@ class UserAnswerSeeder extends Seeder
 
     private function generateAnswer(Question $question): string
     {
-        return match ($question->answer_type) {
-            AnswerType::Boolean->value => json_encode(fake()->boolean() ? "1" : "0"), // "1" یا "0" به‌جای true/false
-
-            AnswerType::String->value => json_encode(match ($question->search_label) {
-                'Father Name' => fake()->firstName('male') . ' ' . fake()->lastName(),
-                'Mother Name' => fake()->firstName('female') . ' ' . fake()->lastName(),
-                'Sibling' => (string) fake()->numberBetween(0, 6),
-                'Height' => (string) fake()->numberBetween(150, 200) . ' cm',
-                default => fake()->sentence(),
-            }),
-
-            AnswerType::Single->value => json_encode(
-                $question->options->isNotEmpty() ? $question->options->random()->option_value : 'N/A'
-            ),
-
-            AnswerType::Multiple->value => json_encode(
-                $question->options->isNotEmpty()
-                    ? $question->options->random(rand(1, min(3, $question->options->count())))->pluck('option_value')->toArray()
-                    : ['N/A']
-            ),
-
-            default => json_encode(null),
-        };
+        switch ($question->answer_type) {
+            case 'string':
+                return json_encode(match ($question->search_label) {
+                    'Father Name' => fake()->firstName('male') . ' ' . fake()->lastName(),
+                    'Mother Name' => fake()->firstName('female') . ' ' . fake()->lastName(),
+                    default => fake()->sentence(),
+                });
+            case 'number':
+                return json_encode(match ($question->search_label) {
+                    'Sibling' => fake()->numberBetween(0, 6),
+                    'Height' => fake()->numberBetween(150, 200), // قد به سانتیمتر
+                    default => fake()->numberBetween(1, 100),
+                });
+            case 'boolean':
+                return json_encode(fake()->boolean() ? "1" : "0");
+            case 'single':
+                return json_encode(
+                    $question->options->isNotEmpty() ? $question->options->random()->option_value : 'N/A'
+                );
+            case 'multiple':
+                return json_encode(
+                    $question->options->isNotEmpty()
+                        ? $question->options->random(rand(1, min(3, $question->options->count())))->pluck('option_value')->toArray()
+                        : ['N/A']
+                );
+            default:
+                return json_encode(null);
+        }
     }
 }

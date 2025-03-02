@@ -28,13 +28,11 @@ class Question extends Model
         'is_visible' => 'boolean',
     ];
 
-    // رابط با QuestionOption (یک پرسش چندین گزینه دارد)
     public function options()
     {
         return $this->hasMany(QuestionOption::class, 'question_id');
     }
 
-    // رابط با UserAnswer (یک پرسش چندین جواب از کاربران دارد)
     public function userAnswers()
     {
         return $this->hasMany(UserAnswer::class, 'question_id');
