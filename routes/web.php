@@ -33,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/friends/received', \App\Livewire\FriendsIndex::class)->name('friends.received');
     Route::get('/friends/blocked', \App\Livewire\FriendsIndex::class)->name('friends.blocked');
     Route::get('/friends/reports', \App\Livewire\FriendsIndex::class)->name('friends.reports');
+    Route::get('/friends/suggestions', \App\Livewire\FriendsIndex::class)->name('friends.suggestions');
 
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::post('/logout', fn() => auth()->logout() && redirect('/login'))->name('logout');

@@ -30,6 +30,19 @@
                                     </div>
                                 @endforeach
                             </div>
+                            @if ($activeTab === 'suggestions' && $tabs[$activeTab]['users']->count() >= $perPage)
+                                <div class="text-center">
+                                    <button wire:click="loadMore"
+                                            class="btn btn-primary"
+                                            wire:loading.attr="disabled">
+                                        <span wire:loading.remove>Load More</span>
+                                        <span wire:loading>
+                                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            Loading...
+                                        </span>
+                                    </button>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
