@@ -49,6 +49,10 @@ class FeatureSeeder extends Seeder
                 'description' => 'Block other users from interacting with you.',
             ],
             [
+                'name' => 'unblock_user',
+                'description' => 'Unblock users to allow interaction again.',
+            ],
+            [
                 'name' => 'report_user',
                 'description' => 'Report users for inappropriate behavior.',
             ],
