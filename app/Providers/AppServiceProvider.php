@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\UserAnswer;
+use App\Observers\UserAnswerObserver;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
 /**
@@ -34,6 +36,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        UserAnswer::observe(UserAnswerObserver::class);
     }
 }

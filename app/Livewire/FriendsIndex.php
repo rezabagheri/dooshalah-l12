@@ -8,7 +8,7 @@ use App\Models\Block;
 use App\Models\Friendship;
 use App\Models\Report;
 use App\Models\User;
-use App\Models\UserAnswer;
+use App\Models\UserMatchScore;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -18,7 +18,7 @@ class FriendsIndex extends Component
 
     public string $activeTab = 'suggestions';
     public int $perPage = 15;
-    public bool $isLoading = false; // حالت لود
+    public bool $isLoading = false;
 
     public function mount(): void
     {
@@ -37,9 +37,9 @@ class FriendsIndex extends Component
 
     public function loadMore(): void
     {
-        $this->isLoading = true; // شروع لود
+        $this->isLoading = true;
         $this->perPage += 15;
-        $this->isLoading = false; // پایان لود
+        $this->isLoading = false;
     }
 
     public function render()
@@ -102,39 +102,20 @@ class FriendsIndex extends Component
         $excludedIds = array_merge($blockedIds, $blockedByIds, [$currentUser->id]);
 
         $currentUserAge = $currentUser->birth_date->diffInYears(now());
-        $currentUserAnswers = $currentUser->userAnswers->pluck('answer', 'question_id')->toArray();
 
         return User::where('gender', $currentUser->gender === Gender::Male ? Gender::Female : Gender::Male)
             ->whereBetween('birth_date', [
                 now()->subYears($currentUserAge),
                 now()->subYears($currentUserAge - 10),
             ])
-            ->whereNotIn('id', $excludedIds)
-            ->with('userAnswers')
-            ->get()
-            ->map(function ($user) use ($currentUserAnswers) {
-                $targetUserAnswers = $user->userAnswers->pluck('answer', 'question_id')->toArray();
-                $totalWeight = 0;
-                $matchedWeight = 0;
-
-                foreach ($currentUserAnswers as $questionId => $currentAnswer) {
-                    if (isset($targetUserAnswers[$questionId])) {
-                        $question = \App\Models\Question::find($questionId);
-                        $targetAnswer = $targetUserAnswers[$questionId];
-                        $weight = $question->weight ?? 1;
-
-                        $totalWeight += $weight;
-                        if (json_encode($currentAnswer) === json_encode($targetAnswer)) {
-                            $matchedWeight += $weight;
-                        }
-                    }
-                }
-
-                $matchPercentage = $totalWeight > 0 ? round(($matchedWeight / $totalWeight) * 100, 1) : 0;
-                $user->match_percentage = $matchPercentage;
-                return $user;
+            ->whereNotIn('users.id', $excludedIds) // مشخص کردن جدول users
+            ->join('user_match_scores', function ($join) use ($currentUser) {
+                $join->on('users.id', '=', 'user_match_scores.target_id')
+                     ->where('user_match_scores.user_id', $currentUser->id);
             })
-            ->sortByDesc('match_percentage')
-            ->take($this->perPage);
+            ->select('users.*', 'user_match_scores.match_score as match_percentage')
+            ->orderByDesc('match_score')
+            ->take($this->perPage)
+            ->get();
     }
 }

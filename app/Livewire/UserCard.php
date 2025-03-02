@@ -9,6 +9,7 @@ use App\Models\Friendship;
 use App\Models\Report;
 use App\Models\User;
 use App\Models\UserAnswer;
+use App\Models\UserMatchScore;
 use Livewire\Component;
 
 class UserCard extends Component
@@ -42,27 +43,9 @@ class UserCard extends Component
 
     private function calculateMatchPercentage(): void
     {
-        $currentUser = auth()->user();
-        $currentUserAnswers = $currentUser->userAnswers->pluck('answer', 'question_id')->toArray();
-        $targetUserAnswers = $this->user->userAnswers->pluck('answer', 'question_id')->toArray();
-
-        $totalWeight = 0;
-        $matchedWeight = 0;
-
-        foreach ($currentUserAnswers as $questionId => $currentAnswer) {
-            if (isset($targetUserAnswers[$questionId])) {
-                $question = \App\Models\Question::find($questionId);
-                $targetAnswer = $targetUserAnswers[$questionId];
-                $weight = $question->weight ?? 1;
-
-                $totalWeight += $weight;
-                if (json_encode($currentAnswer) === json_encode($targetAnswer)) {
-                    $matchedWeight += $weight;
-                }
-            }
-        }
-
-        $this->matchPercentage = $totalWeight > 0 ? round(($matchedWeight / $totalWeight) * 100, 1) : 0;
+        $this->matchPercentage = UserMatchScore::where('user_id', auth()->user()->id)
+            ->where('target_id', $this->user->id)
+            ->value('match_score') ?? 0;
     }
 
     public function sendFriendshipRequest(): void

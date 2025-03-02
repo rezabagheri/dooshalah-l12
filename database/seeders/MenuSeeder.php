@@ -155,12 +155,25 @@ class MenuSeeder extends Seeder
             [
                 'menu_id' => $sidebar->id,
                 'parent_id' => $friends->id,
+                'label' => 'Browse',
+            ],
+            [
+                'route' => 'friends.suggestions',
+                'icon' => 'bi bi-search',
+                'order' => 1,
+            ]
+        );
+
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $friends->id,
                 'label' => 'My Friends',
             ],
             [
                 'route' => 'friends.my-friends',
                 'icon' => 'bi bi-person-check',
-                'order' => 1,
+                'order' => 2,
             ]
         );
 
@@ -173,7 +186,7 @@ class MenuSeeder extends Seeder
             [
                 'route' => 'friends.pending',
                 'icon' => 'bi bi-hourglass-split',
-                'order' => 2,
+                'order' => 3,
             ]
         );
 
@@ -186,7 +199,7 @@ class MenuSeeder extends Seeder
             [
                 'route' => 'friends.received',
                 'icon' => 'bi bi-envelope',
-                'order' => 3,
+                'order' => 4,
             ]
         );
 
@@ -199,7 +212,7 @@ class MenuSeeder extends Seeder
             [
                 'route' => 'friends.blocked',
                 'icon' => 'bi bi-person-lock',
-                'order' => 4,
+                'order' => 5,
             ]
         );
 
@@ -212,7 +225,7 @@ class MenuSeeder extends Seeder
             [
                 'route' => 'friends.reports',
                 'icon' => 'bi bi-exclamation-triangle',
-                'order' => 5,
+                'order' => 6,
             ]
         );
 
