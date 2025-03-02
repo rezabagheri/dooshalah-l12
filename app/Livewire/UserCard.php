@@ -105,7 +105,7 @@ class UserCard extends Component
 
     public function unfriend(): void
     {
-        if ($this->friendship && $this->friendship->status === FriendshipStatus::Accepted->value) {
+        if ($this->friendship && $this->friendship->status === FriendshipStatus::Accepted) {
             $this->friendship->delete();
             $this->dispatch('friendship-removed');
             $this->checkRelationship();
@@ -149,19 +149,17 @@ class UserCard extends Component
     public function render()
     {
         $visibleInterests = UserAnswer::where('user_id', $this->user->id)
-            ->join('questions', 'user_answers.question_id', '=', 'questions.id') // جوین صریح
+            ->join('questions', 'user_answers.question_id', '=', 'questions.id')
             ->where('questions.is_visible', true)
-            ->select('user_answers.*') // برای جلوگیری از ابهام ستون‌ها
+            ->select('user_answers.*')
             ->orderByDesc('questions.weight')
             ->take(4)
-            ->with('question') // برای گرفتن اطلاعات سوال
+            ->with('question')
             ->get()
-            ->map(
-                fn($answer) => [
-                    'label' => $answer->question->answer_label,
-                    'value' => is_array($answer->answer) ? implode(', ', $answer->answer) : $answer->answer,
-                ],
-            );
+            ->map(fn ($answer) => [
+                'label' => $answer->question->answer_label,
+                'value' => is_array($answer->answer) ? implode(', ', $answer->answer) : $answer->answer,
+            ]);
 
         return view('livewire.user-card', [
             'user' => $this->user,

@@ -15,7 +15,6 @@ class FriendsIndex extends Component
 
     public function mount(): void
     {
-        // تب پیش‌فرض
         $this->activeTab = request()->routeIs('friends.my-friends') ? 'my-friends' :
                            (request()->routeIs('friends.pending') ? 'pending' :
                             (request()->routeIs('friends.received') ? 'received' :
@@ -39,10 +38,8 @@ class FriendsIndex extends Component
                         $query->where('user_id', $currentUser->id)
                               ->orWhere('target_id', $currentUser->id);
                     })
-                    ->pluck('user_id', 'target_id')
-                    ->flatten()
-                    ->unique()
-                    ->filter(fn ($id) => $id != $currentUser->id))
+                    ->selectRaw("IF(user_id = ?, target_id, user_id) as friend_id", [$currentUser->id])
+                    ->pluck('friend_id'))
                     ->get(),
             ],
             'pending' => [

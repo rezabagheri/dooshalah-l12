@@ -30,7 +30,9 @@ class DatabaseSeeder extends Seeder
             SubscriptionsSeeder::class,
             PaymentSeeder::class,
             QuestionSeeder::class,
-            UserAnswersSeeder::class,
+            UserAnswerSeeder::class,
+            MenuSeeder::class,
+            FriendshipSeeder::class,
 
         ]);
     }

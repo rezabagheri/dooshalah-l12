@@ -43,8 +43,8 @@ class MenuSeeder extends Seeder
             ]
         );
 
-        // Settings
-        MenuItem::updateOrCreate(
+        // Settings (منوی اصلی)
+        $settings = MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
                 'label' => 'Settings',
@@ -53,6 +53,86 @@ class MenuSeeder extends Seeder
                 'route' => '#',
                 'icon' => 'bi bi-gear-fill',
                 'order' => 2,
+                'has_divider' => true,
+            ]
+        );
+
+        // زیرمنوهای Settings
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $settings->id,
+                'label' => 'Profile',
+            ],
+            [
+                'route' => 'settings.profile',
+                'icon' => 'bi bi-person',
+                'order' => 1,
+            ]
+        );
+
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $settings->id,
+                'label' => 'Password',
+            ],
+            [
+                'route' => 'settings.password',
+                'icon' => 'bi bi-lock',
+                'order' => 2,
+            ]
+        );
+
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $settings->id,
+                'label' => 'Security',
+            ],
+            [
+                'route' => 'settings.security',
+                'icon' => 'bi bi-shield-lock',
+                'order' => 3,
+            ]
+        );
+
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $settings->id,
+                'label' => 'Photos',
+            ],
+            [
+                'route' => 'settings.photos',
+                'icon' => 'bi bi-camera',
+                'order' => 4,
+            ]
+        );
+
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $settings->id,
+                'label' => 'Interests',
+            ],
+            [
+                'route' => 'settings.interests',
+                'icon' => 'bi bi-heart',
+                'order' => 5,
+            ]
+        );
+
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $settings->id,
+                'label' => 'Appearance',
+            ],
+            [
+                'route' => 'settings.appearance',
+                'icon' => 'bi bi-palette',
+                'order' => 6,
             ]
         );
 
@@ -66,7 +146,7 @@ class MenuSeeder extends Seeder
                 'route' => 'friends.index',
                 'icon' => 'bi bi-people',
                 'order' => 3,
-                'has_divider' => true, // یه خط جداکننده بعدش اضافه می‌کنه
+                'has_divider' => true,
             ]
         );
 

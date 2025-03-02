@@ -20,21 +20,17 @@
 
                     <!-- محتوای تب‌ها -->
                     <div class="tab-content mt-3">
-                        @foreach ($tabs as $tabKey => $tab)
-                            <div class="tab-pane {{ $activeTab === $tabKey ? 'active' : '' }}" role="tabpanel">
-                                @if ($tab['users']->isEmpty())
-                                    <p class="text-muted">No {{ strtolower($tab['label']) }} found.</p>
-                                @else
-                                    <div class="row">
-                                        @foreach ($tab['users'] as $user)
-                                            <div class="col-md-4 col-sm-6 mb-3">
-                                                @livewire('user-card', ['user' => $user], key($user->id))
-                                            </div>
-                                        @endforeach
+                        @if ($tabs[$activeTab]['users']->isEmpty())
+                            <p class="text-muted">No users found in this tab.</p>
+                        @else
+                            <div class="row">
+                                @foreach ($tabs[$activeTab]['users'] as $user)
+                                    <div class="col-md-4 col-sm-6 mb-3">
+                                        @livewire('user-card', ['user' => $user], key($user->id))
                                     </div>
-                                @endif
+                                @endforeach
                             </div>
-                        @endforeach
+                        @endif
                     </div>
                 </div>
             </div>

@@ -6,7 +6,7 @@
                 {{ $user->display_name }}
                 <i class="bi {{ $user->gender === \App\Enums\Gender::Male ? 'bi-gender-male' : 'bi-gender-female' }} ms-1"></i>
             </h5>
-            <p class="card-text"><small class="text-muted">({{ now()->diffInYears($user->birth_date) }} years old)</small></p>
+            <p class="card-text"><small class="text-muted">({{ intval($user->birth_date->diffInYears(now())) }} years old)</small></p>
         </div>
 
         <!-- Body -->
@@ -37,17 +37,17 @@
                         <i class="bi bi-unlock me-1"></i> Unblock
                     </button>
                 @elseif ($friendship)
-                    @if ($friendship->status === \App\Enums\FriendshipStatus::Accepted->value)
+                    @if ($friendship->status === \App\Enums\FriendshipStatus::Accepted)
                         <button wire:click="unfriend" class="btn btn-danger btn-sm">
                             <i class="bi bi-person-dash me-1"></i> Unfriend
                         </button>
-                    @elseif ($friendship->status === \App\Enums\FriendshipStatus::Pending->value && $friendship->user_id === auth()->id())
+                    @elseif ($friendship->status === \App\Enums\FriendshipStatus::Pending && $friendship->user_id === auth()->id())
                         <button wire:click="cancelFriendship" class="btn btn-secondary btn-sm">
-                            <i class="bi bi-x-circle me-1"></i> Cancel
+                            <i class="bi bi-x-circle me-1"></i> Remove Request
                         </button>
-                    @elseif ($friendship->status === \App\Enums\FriendshipStatus::Pending->value && $friendship->target_id === auth()->id())
+                    @elseif ($friendship->status === \App\Enums\FriendshipStatus::Pending && $friendship->target_id === auth()->id())
                         <button wire:click="acceptFriendship" class="btn btn-success btn-sm">
-                            <i class="bi bi-check-circle me-1"></i> Accept
+                            <i class="bi bi-check-circle me-1"></i> Accept Request
                         </button>
                         <button wire:click="rejectFriendship" class="btn btn-danger btn-sm">
                             <i class="bi bi-x-circle me-1"></i> Reject
@@ -78,12 +78,12 @@
                         @if ($block)
                             <li><button wire:click="unblock" class="dropdown-item">Unblock</button></li>
                         @elseif ($friendship)
-                            @if ($friendship->status === \App\Enums\FriendshipStatus::Accepted->value)
+                            @if ($friendship->status === \App\Enums\FriendshipStatus::Accepted)
                                 <li><button wire:click="unfriend" class="dropdown-item">Unfriend</button></li>
-                            @elseif ($friendship->status === \App\Enums\FriendshipStatus::Pending->value && $friendship->user_id === auth()->id())
-                                <li><button wire:click="cancelFriendship" class="dropdown-item">Cancel</button></li>
-                            @elseif ($friendship->status === \App\Enums\FriendshipStatus::Pending->value && $friendship->target_id === auth()->id())
-                                <li><button wire:click="acceptFriendship" class="dropdown-item">Accept</button></li>
+                            @elseif ($friendship->status === \App\Enums\FriendshipStatus::Pending && $friendship->user_id === auth()->id())
+                                <li><button wire:click="cancelFriendship" class="dropdown-item">Remove Request</button></li>
+                            @elseif ($friendship->status === \App\Enums\FriendshipStatus::Pending && $friendship->target_id === auth()->id())
+                                <li><button wire:click="acceptFriendship" class="dropdown-item">Accept Request</button></li>
                                 <li><button wire:click="rejectFriendship" class="dropdown-item">Reject</button></li>
                             @endif
                         @else

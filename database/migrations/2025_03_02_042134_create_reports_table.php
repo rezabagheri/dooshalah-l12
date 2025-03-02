@@ -14,6 +14,12 @@ return new class extends Migration {
             $table->foreignId('target_id')->constrained('users')->onDelete('cascade')
                 ->comment('Foreign key referencing the user being reported');
             $table->text('report')->comment('Details of the report submitted by the user');
+            $table->enum('severity', [
+                \App\Enums\Severity::Low->value,
+                \App\Enums\Severity::Medium->value,
+                \App\Enums\Severity::High->value
+            ])->default(\App\Enums\Severity::Medium->value)
+                ->comment('Severity of the report: low, medium, or high');
             $table->text('answer')->nullable()->comment('Response to the report (if provided)');
             $table->string('page_url')->nullable()->comment('URL of the page where the report was made');
             $table->string('user_agent')->nullable()->comment('User agent of the reporting user\'s device');
