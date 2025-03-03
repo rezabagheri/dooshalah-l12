@@ -229,6 +229,20 @@ class MenuSeeder extends Seeder
             ]
         );
 
+
+        $support = MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'label' => 'Support',
+            ],
+            [
+                'route' => 'support',
+                'icon' => 'bi bi-headset',
+                'order' => 5,
+                'has_divider' => true,
+            ]
+        );
+
         $this->command->info('Sidebar menu seeded successfully!');
     }
 }

@@ -59,6 +59,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/plans/payment/callback/{payment_id}', \App\Livewire\PaymentCallback::class)->name('plans.payment.callback');
     Route::get('/plans/payment/cancel/{payment_id}', \App\Livewire\PaymentCallback::class)->name('plans.payment.cancel');
 
+    Route::get('/support', \App\Livewire\SupportPage::class)->name('support');
 
 });
 

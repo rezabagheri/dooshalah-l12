@@ -2,7 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Mail\PaymentFailedMail;
+use App\Mail\PaymentSuccessMail;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 
@@ -17,13 +20,16 @@ class PaymentCallback extends Component
         $this->paymentId = request()->route('payment_id');
         $this->payerId = request('PayerID');
 
-        // اگه PayerID نباشه، یعنی لغو شده
         if (!$this->payerId) {
             $this->paymentDetails = [
                 'status' => 'canceled',
                 'message' => 'Payment was canceled.',
                 'reason' => 'You canceled the payment process.',
             ];
+            $payment = Payment::find($this->paymentId);
+            if ($payment) {
+                Mail::to($payment->user->email)->send(new PaymentFailedMail($payment, $this->paymentDetails['reason']));
+            }
             return;
         }
 
@@ -57,6 +63,8 @@ class PaymentCallback extends Component
                 'transaction_id' => $payment->transaction_id,
                 'payment_date' => $payment->payment_date->format('Y-m-d H:i:s'),
             ];
+
+            Mail::to($payment->user->email)->send(new PaymentSuccessMail($payment));
         } else {
             $payment->update([
                 'payment_status' => 'failed',
@@ -68,6 +76,8 @@ class PaymentCallback extends Component
                 'message' => 'Payment failed.',
                 'reason' => $response['error']['message'] ?? 'An unknown error occurred during payment processing.',
             ];
+
+            Mail::to($payment->user->email)->send(new PaymentFailedMail($payment, $this->paymentDetails['reason']));
         }
     }
 
