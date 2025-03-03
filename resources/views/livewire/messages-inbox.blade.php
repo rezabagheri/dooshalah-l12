@@ -38,16 +38,22 @@ new class extends Component {
             <ul class="list-group list-group-flush">
                 @foreach ($messages as $message)
                     <li class="list-group-item" wire:click="markAsReadAndRedirect({{ $message->id }})" style="cursor: pointer;">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>{{ $message->sender->display_name ?? 'Unknown' }}</strong>
-                                <p class="text-muted mb-0">{{ \Illuminate\Support\Str::limit($message->subject, 30) }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ $message->sender->profilePicture()?->media->path ? asset('storage/' . $message->sender->profilePicture()->media->path) : '/dist/assets/img/user2-160x160.jpg' }}"
+                                     class="rounded-circle me-2" style="width: 40px; height: 40px;" alt="Sender Image">
+                                <div>
+                                    <strong>{{ $message->sender->display_name ?? 'Unknown' }}</strong>
+                                    <p class="text-muted mb-0">{{ \Illuminate\Support\Str::limit($message->subject, 30) }}</p>
+                                </div>
                             </div>
-                            <small class="text-muted">{{ $message->sent_at ? $message->sent_at->diffForHumans() : 'Draft' }}</small>
+                            <div class="d-flex align-items-center">
+                                <small class="text-muted me-2">{{ $message->sent_at ? $message->sent_at->diffForHumans() : 'Draft' }}</small>
+                                @if (!$message->read_at)
+                                    <span class="badge bg-primary">New</span>
+                                @endif
+                            </div>
                         </div>
-                        @if (!$message->read_at)
-                            <span class="badge bg-primary position-absolute top-0 end-0 mt-2 me-2">New</span>
-                        @endif
                     </li>
                 @endforeach
             </ul>
