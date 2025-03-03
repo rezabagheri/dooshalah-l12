@@ -109,12 +109,50 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Coming soon: Report form</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    @if (session('report-success'))
+                        <div class="alert alert-success">
+                            {{ session('report-success') }}
+                        </div>
+                    @else
+                        <form wire:submit.prevent="submitReport">
+                            <div class="mb-3">
+                                <label for="reportReason{{ $user->id }}" class="form-label">Reason for Report</label>
+                                <input type="text" class="form-control" id="reportReason{{ $user->id }}" wire:model="reportReason" placeholder="e.g., Inappropriate behavior" required>
+                                @error('reportReason') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="reportDescription{{ $user->id }}" class="form-label">Description</label>
+                                <textarea class="form-control" id="reportDescription{{ $user->id }}" rows="4" wire:model="reportDescription" placeholder="Please provide details..." required></textarea>
+                                @error('reportDescription') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Submit Report</button>
+                            </div>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('user-reported', () => {
+                sessionStorage.setItem('report-success', 'Your report has been submitted successfully!');
+                window.location.reload();
+            });
+            Livewire.on('close-modal', () => {
+                bootstrap.Modal.getInstance(document.getElementById('reportUserModal{{ $user->id }}')).hide();
+            });
+        });
+
+        window.addEventListener('load', () => {
+            const successMessage = sessionStorage.getItem('report-success');
+            if (successMessage) {
+                Livewire.dispatch('report-success', { message: successMessage });
+                sessionStorage.removeItem('report-success');
+            }
+        });
+    </script>
 </div>

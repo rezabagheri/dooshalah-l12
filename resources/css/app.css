@@ -56,3 +56,9 @@
 .card-not-approved:hover {
     opacity: 1;
 }
+
+.notification-item {
+    padding: 10px 15px; /* فاصله از چپ و راست */
+    white-space: normal; /* اجازه شکستن خط */
+    word-break: break-word; /* شکستن کلمات طولانی */
+}

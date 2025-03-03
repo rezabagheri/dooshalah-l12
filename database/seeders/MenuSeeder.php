@@ -243,6 +243,32 @@ class MenuSeeder extends Seeder
             ]
         );
 
+        $payments = MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'label' => 'Payment History',
+            ],
+            [
+                'route' => 'payments.history',
+                'icon' => 'bi bi-receipt',
+                'order' => 4,
+                'has_divider' => true,
+            ]
+        );
+
+        $notifications = MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'label' => 'Notifications',
+            ],
+            [
+                'route' => 'notifications',
+                'icon' => 'bi bi-bell-fill',
+                'order' => 6,
+                'has_divider' => true,
+            ]
+        );
+
         $this->command->info('Sidebar menu seeded successfully!');
     }
 }

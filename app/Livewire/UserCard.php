@@ -4,8 +4,11 @@ namespace App\Livewire;
 
 use App\Enums\FriendshipStatus;
 use App\Enums\Gender;
+use App\Enums\NotificationType;
+use App\Enums\Severity;
 use App\Models\Block;
 use App\Models\Friendship;
+use App\Models\Notification;
 use App\Models\Report;
 use App\Models\Subscription;
 use App\Models\User;
@@ -19,6 +22,14 @@ class UserCard extends Component
     public ?Friendship $friendship = null;
     public ?Block $block = null;
     public float $matchPercentage = 0;
+
+    public $reportReason = '';
+    public $reportDescription = '';
+
+    protected $rules = [
+        'reportReason' => 'required|string|max:255',
+        'reportDescription' => 'required|string|min:10|max:1000',
+    ];
 
     public function mount(User $user): void
     {
@@ -44,9 +55,10 @@ class UserCard extends Component
 
     private function calculateMatchPercentage(): void
     {
-        $this->matchPercentage = UserMatchScore::where('user_id', auth()->user()->id)
-            ->where('target_id', $this->user->id)
-            ->value('match_score') ?? 0;
+        $this->matchPercentage =
+            UserMatchScore::where('user_id', auth()->user()->id)
+                ->where('target_id', $this->user->id)
+                ->value('match_score') ?? 0;
     }
 
     private function hasFeatureAccess($feature): bool
@@ -56,9 +68,7 @@ class UserCard extends Component
             ->where('end_date', '>=', now())
             ->first();
 
-        return $activeSubscription && $activeSubscription->plan->features()
-            ->where('name', $feature)
-            ->exists();
+        return $activeSubscription && $activeSubscription->plan->features()->where('name', $feature)->exists();
     }
 
     public function sendFriendshipRequest(): void
@@ -68,15 +78,27 @@ class UserCard extends Component
             return;
         }
 
-        Friendship::create([
+        $friendship = Friendship::create([
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,
             'status' => FriendshipStatus::Pending->value,
         ]);
+
+        Notification::create([
+            'user_id' => $this->user->id,
+            'sender_id' => auth()->user()->id,
+            'type' => NotificationType::FriendRequest->value,
+            'title' => \Illuminate\Support\Str::limit(auth()->user()->display_name . ' sent you a friend request', 100, '...'),
+            'content' => 'Click to view the request.',
+            'action_url' => route('friends.received'),
+            'related_id' => $friendship->id,
+            'related_type' => 'Friendship',
+            'priority' => 2,
+        ]);
+
         $this->dispatch('friendship-request-sent');
         $this->checkRelationship();
     }
-
     public function acceptFriendship(): void
     {
         if (!$this->hasFeatureAccess('accept_request')) {
@@ -86,6 +108,19 @@ class UserCard extends Component
 
         if ($this->friendship && $this->friendship->user_id === $this->user->id) {
             $this->friendship->update(['status' => FriendshipStatus::Accepted->value]);
+
+            Notification::create([
+                'user_id' => $this->user->id,
+                'sender_id' => auth()->user()->id,
+                'type' => NotificationType::FriendAccepted->value,
+                'title' => \Illuminate\Support\Str::limit(auth()->user()->display_name . ' accepted your friend request', 100, '...'),
+                'content' => 'You are now friends!',
+                'action_url' => route('friends.my-friends'),
+                'related_id' => $this->friendship->id,
+                'related_type' => 'Friendship',
+                'priority' => 2,
+            ]);
+
             $this->dispatch('friendship-accepted');
             $this->checkRelationship();
         }
@@ -153,7 +188,7 @@ class UserCard extends Component
 
     public function unblock(): void
     {
-        if (!$this->hasFeatureAccess('block_user')) {
+        if (!$this->hasFeatureAccess('unblock_user')) {
             redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to unblock users.');
             return;
         }
@@ -172,30 +207,36 @@ class UserCard extends Component
             return;
         }
 
+        // فقط دسترسی رو چک می‌کنه، ثبت گزارش توی submitReport انجام می‌شه
+    }
+
+    public function submitReport()
+    {
+        $this->validate();
+
         Report::create([
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,
-            'report' => 'Reported via UserCard',
+            'report' => $this->reportReason,
+            'description' => $this->reportDescription,
             'status' => FriendshipStatus::Pending->value,
-            'severity' => \App\Enums\Severity::Medium->value,
+            'severity' => Severity::Medium->value,
         ]);
+
+        $this->reportReason = '';
+        $this->reportDescription = '';
         $this->dispatch('user-reported');
+        $this->dispatch('close-modal'); // برای بستن مودال
     }
 
     public function render()
     {
-        $visibleInterests = UserAnswer::where('user_id', $this->user->id)
-            ->join('questions', 'user_answers.question_id', '=', 'questions.id')
-            ->where('questions.is_visible', true)
-            ->select('user_answers.*')
-            ->orderByDesc('questions.weight')
-            ->take(4)
-            ->with('question')
-            ->get()
-            ->map(fn ($answer) => [
+        $visibleInterests = UserAnswer::where('user_id', $this->user->id)->join('questions', 'user_answers.question_id', '=', 'questions.id')->where('questions.is_visible', true)->select('user_answers.*')->orderByDesc('questions.weight')->take(4)->with('question')->get()->map(
+            fn($answer) => [
                 'label' => $answer->question->answer_label,
                 'value' => is_array($answer->answer) ? implode(', ', $answer->answer) : $answer->answer,
-            ]);
+            ],
+        );
 
         return view('livewire.user-card', [
             'user' => $this->user,

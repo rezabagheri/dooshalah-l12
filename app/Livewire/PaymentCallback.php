@@ -2,8 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Enums\NotificationType;
 use App\Mail\PaymentFailedMail;
 use App\Mail\PaymentSuccessMail;
+use App\Models\Notification;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
@@ -38,7 +40,7 @@ class PaymentCallback extends Component
 
     private function processPayment()
     {
-        $provider = new PayPalClient;
+        $provider = new PayPalClient();
         $provider->setApiCredentials(config('paypal'));
         $provider->getAccessToken();
 
@@ -65,6 +67,17 @@ class PaymentCallback extends Component
             ];
 
             Mail::to($payment->user->email)->send(new PaymentSuccessMail($payment));
+
+            Notification::create([
+                'user_id' => auth()->user()->id,
+                'type' => NotificationType::PaymentSuccess->value,
+                'title' => \Illuminate\Support\Str::limit("Your payment for {$subscription->plan->name} ({$subscription->planPrice->duration}) was successful", 100, '...'),
+                'content' => "Your payment for {$subscription->plan->name} ({$subscription->planPrice->duration}) was successful.",
+                'action_url' => route('payments.history'),
+                'related_id' => $payment->id,
+                'related_type' => 'Payment',
+                'priority' => 2,
+            ]);
         } else {
             $payment->update([
                 'payment_status' => 'failed',
@@ -78,6 +91,17 @@ class PaymentCallback extends Component
             ];
 
             Mail::to($payment->user->email)->send(new PaymentFailedMail($payment, $this->paymentDetails['reason']));
+
+            Notification::create([
+                'user_id' => auth()->user()->id,
+                'type' => NotificationType::PaymentFailed->value,
+                'title' => \Illuminate\Support\Str::limit("Payment attempt failed: {$this->paymentDetails['reason']}", 100, '...'),
+                'content' => "Your payment attempt failed: {$this->paymentDetails['reason']}",
+                'action_url' => route('plans.upgrade'),
+                'related_id' => $payment->id,
+                'related_type' => 'Payment',
+                'priority' => 3,
+            ]);
         }
     }
 
