@@ -57,9 +57,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/plans/upgrade', \App\Livewire\PlansUpgrade::class)->name('plans.upgrade');
     Route::get('/plans/payment/callback/{payment_id}', \App\Livewire\PaymentCallback::class)->name('plans.payment.callback');
-    Route::get('/plans/payment/cancel/{payment_id}', function ($paymentId) {
-        return redirect()->route('plans.upgrade')->with('error', 'Payment was canceled.');
-    })->name('plans.payment.cancel');
+    Route::get('/plans/payment/cancel/{payment_id}', \App\Livewire\PaymentCallback::class)->name('plans.payment.cancel');
 
 
 });

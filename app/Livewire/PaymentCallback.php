@@ -16,6 +16,17 @@ class PaymentCallback extends Component
     {
         $this->paymentId = request()->route('payment_id');
         $this->payerId = request('PayerID');
+
+        // اگه PayerID نباشه، یعنی لغو شده
+        if (!$this->payerId) {
+            $this->paymentDetails = [
+                'status' => 'canceled',
+                'message' => 'Payment was canceled.',
+                'reason' => 'You canceled the payment process.',
+            ];
+            return;
+        }
+
         $this->processPayment();
     }
 
@@ -37,7 +48,6 @@ class PaymentCallback extends Component
             $subscription = $payment->subscription;
             $subscription->update(['status' => 'active']);
 
-            // ذخیره جزئیات برای نمایش
             $this->paymentDetails = [
                 'status' => 'success',
                 'message' => 'Payment completed successfully!',
@@ -55,7 +65,8 @@ class PaymentCallback extends Component
 
             $this->paymentDetails = [
                 'status' => 'failed',
-                'message' => 'Payment failed. Please try again.',
+                'message' => 'Payment failed.',
+                'reason' => $response['error']['message'] ?? 'An unknown error occurred during payment processing.',
             ];
         }
     }
