@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
@@ -51,6 +53,15 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::post('/logout', fn() => auth()->logout() && redirect('/login'))->name('logout');
+
+
+    Route::get('/plans/upgrade', \App\Livewire\PlansUpgrade::class)->name('plans.upgrade');
+    Route::get('/plans/payment/callback/{payment_id}', \App\Livewire\PaymentCallback::class)->name('plans.payment.callback');
+    Route::get('/plans/payment/cancel/{payment_id}', function ($paymentId) {
+        return redirect()->route('plans.upgrade')->with('error', 'Payment was canceled.');
+    })->name('plans.payment.cancel');
+
+
 });
 
 require __DIR__.'/auth.php';

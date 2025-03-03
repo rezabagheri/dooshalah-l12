@@ -35,7 +35,7 @@ return new class extends Migration
             $table->decimal('amount', 10, 2)->comment('Amount paid for the subscription');
             $table->timestamp('start_date')->index()->comment('Timestamp when the subscription starts');
             $table->timestamp('end_date')->index()->comment('Timestamp when the subscription ends');
-            $table->enum('status', ['active', 'expired', 'canceled'])->default('active')
+            $table->enum('status', ['active', 'expired', 'canceled','pending'])->default('active')
                 ->comment('Status of the subscription: active, expired, or canceled');
             $table->timestamps();
 
