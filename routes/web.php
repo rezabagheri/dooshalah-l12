@@ -29,11 +29,13 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/photos', 'settings.photos')->name('settings.photos');
     Volt::route('settings/interests', 'settings.interests')->name('settings.interests');
 
+
     Volt::route('/messages', 'messages-inbox')->name('messages.inbox');
     Volt::route('/messages/sent', 'messages-sent')->name('messages.sent');
     Volt::route('/messages/drafts', 'messages-drafts')->name('messages.drafts');
     Volt::route('/messages/compose', 'messages-compose')->name('messages.compose');
-    // بقیه روت‌ها...
+    Volt::route('/messages/read/{id}', 'messages-read')->name('messages.read');
+
 
     // Friends Routes
     Route::middleware(['auth'])->group(function () {

@@ -5,7 +5,7 @@ use App\Models\Message;
 use Livewire\Volt\Component;
 
 new class extends Component {
-    public $selectedMessageId;
+    public $messages;
 
     public function loadMessages()
     {
@@ -16,10 +16,9 @@ new class extends Component {
             ->get();
     }
 
-    public function selectMessage($messageId): void
+    public function redirectToRead($messageId)
     {
-        $this->selectedMessageId = $messageId;
-        $this->loadMessages();
+        $this->redirect(route('messages.read', $messageId));
     }
 
     public function mount()
@@ -35,7 +34,7 @@ new class extends Component {
         @else
             <ul class="list-group list-group-flush">
                 @foreach ($messages as $message)
-                    <li class="list-group-item {{ $selectedMessageId == $message->id ? 'active' : '' }}" wire:click="selectMessage({{ $message->id }})" style="cursor: pointer;">
+                    <li class="list-group-item" wire:click="redirectToRead({{ $message->id }})" style="cursor: pointer;">
                         <div class="d-flex justify-content-between">
                             <div>
                                 <strong>{{ $message->receiver->display_name ?? 'Unknown' }}</strong>
@@ -46,18 +45,6 @@ new class extends Component {
                     </li>
                 @endforeach
             </ul>
-        @endif
-
-        @if ($selectedMessage)
-            <div class="mt-3">
-                <h5>{{ $selectedMessage->subject }}</h5>
-                <p class="text-muted">
-                    To: {{ $selectedMessage->receiver->display_name ?? 'Unknown' }}
-                    - Draft
-                </p>
-                <hr>
-                <p>{{ $selectedMessage->message }}</p>
-            </div>
         @endif
     </div>
 </x-messages.layout>
