@@ -269,6 +269,20 @@ class MenuSeeder extends Seeder
             ]
         );
 
+
+        $messages = MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'label' => 'Messages',
+            ],
+            [
+                'route' => 'messages.inbox',
+                'icon' => 'bi bi-envelope-fill',
+                'order' => 7,
+                'has_divider' => true,
+            ]
+        );
+
         $this->command->info('Sidebar menu seeded successfully!');
     }
 }

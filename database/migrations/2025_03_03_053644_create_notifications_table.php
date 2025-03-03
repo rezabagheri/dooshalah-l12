@@ -11,9 +11,13 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id()->comment('Primary key: Unique identifier for each notification');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade')
+            $table->foreignId('user_id')
+                ->constrained('users', 'id', 'notifications_user_id_foreign')
+                ->onDelete('cascade')
                 ->comment('Foreign key referencing the user receiving the notification');
-            $table->foreignId('sender_id')->nullable()->constrained('users')->onDelete('set null')
+            $table->foreignId('sender_id')->nullable()
+                ->constrained('users', 'id', 'notifications_sender_id_foreign')
+                ->onDelete('set null')
                 ->comment('Foreign key referencing the user who triggered the notification');
             $table->enum('type', array_column(NotificationType::cases(), 'value'))
                 ->index()->comment('Type of notification');
@@ -23,7 +27,7 @@ return new class extends Migration
             $table->boolean('is_read')->default(false)->comment('Indicates if the notification has been read');
             $table->timestamp('read_at')->nullable()->comment('Timestamp when the notification was read');
             $table->unsignedBigInteger('related_id')->nullable()->comment('ID of the related resource');
-            $table->string('related_type')->nullable()->comment('Type of the related resource (e.g., Friendship, Payment)');
+            $table->string('related_type')->nullable()->comment('Type of the related resource');
             $table->json('data')->nullable()->comment('Additional metadata in JSON format');
             $table->tinyInteger('priority')->default(1)->comment('Priority level: 1 (low), 2 (medium), 3 (high)');
             $table->timestamps();

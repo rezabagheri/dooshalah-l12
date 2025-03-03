@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             UserAnswerSeeder::class,
             MenuSeeder::class,
             FriendshipSeeder::class,
+            MessageSeeder::class,
 
         ]);
     }

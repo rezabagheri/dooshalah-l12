@@ -7,27 +7,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * Migration for creating the users table and related tables.
- *
- * This migration sets up the 'users' table along with 'password_reset_tokens' and 'sessions'
- * tables to support user management and authentication.
- *
- * @category Database
- * @package  Migrations
- * @author   Reza Bagheri <rezabagheri@gmail.com>
- * @license  MIT License
- * @link     https://paradisecyber.com
- */
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     *
-     * This method creates the 'users', 'password_reset_tokens', and 'sessions' tables with necessary columns.
-     *
-     * @return void
-     */
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -36,7 +16,8 @@ return new class extends Migration
             $table->string('middle_name')->nullable()->comment('Middle name of the user (optional)');
             $table->string('last_name')->index()->comment('Last name of the user');
             $table->string('display_name')->unique()->index()->comment('Unique display name of the user');
-            $table->enum('gender', [Gender::Male->value, Gender::Female->value])
+            $table
+                ->enum('gender', [Gender::Male->value, Gender::Female->value])
                 ->default(Gender::Male->value)
                 ->index()
                 ->comment('Gender of the user, defaults to male');
@@ -45,20 +26,23 @@ return new class extends Migration
             $table->string('phone_number', 20)->unique()->comment('Phone number of the user (e.g., +1234567890123)');
             $table->string('father_name', 128)->nullable()->comment('Father\'s name of the user (optional)');
             $table->string('mother_name', 128)->nullable()->comment('Mother\'s name of the user (optional)');
-            $table->foreignId('born_country')->nullable()->index()->constrained('countries')->onDelete('set null')->comment('Country of birth');
-            $table->foreignId('living_country')->nullable()->index()->constrained('countries')->onDelete('set null')->comment('Country of residence');
+            $table->foreignId('born_country')->nullable()
+                ->constrained('countries', 'id', 'users_born_country_foreign')
+                ->onDelete('set null')
+                ->comment('Country of birth');
+            $table->foreignId('living_country')->nullable()
+                ->constrained('countries', 'id', 'users_living_country_foreign')
+                ->onDelete('set null')
+                ->comment('Country of residence');
             $table->timestamp('email_verified_at')->nullable()->comment('Timestamp when email was verified');
             $table->string('password')->comment('Hashed password of the user');
-            $table->enum('role', [UserRole::Normal->value, UserRole::Admin->value, UserRole::SuperAdmin->value])
+            $table
+                ->enum('role', [UserRole::Normal->value, UserRole::Admin->value, UserRole::SuperAdmin->value])
                 ->default(UserRole::Normal->value)
                 ->index()
                 ->comment('User role, defaults to normal');
-            $table->enum('status', [
-                UserStatus::Active->value,
-                UserStatus::Pending->value,
-                UserStatus::Suspended->value,
-                UserStatus::Blocked->value
-            ])
+            $table
+                ->enum('status', [UserStatus::Active->value, UserStatus::Pending->value, UserStatus::Suspended->value, UserStatus::Blocked->value])
                 ->default(UserStatus::Pending->value)
                 ->index()
                 ->comment('User status, defaults to pending');
@@ -76,7 +60,11 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary()->comment('Unique session ID');
-            $table->foreignId('user_id')->nullable()->index()->comment('Foreign key to users table');
+            $table->foreignId('user_id')->nullable()
+                ->constrained('users', 'id', 'sessions_user_id_foreign')
+                ->onDelete('cascade')
+                ->index()
+                ->comment('Foreign key to users table');
             $table->string('ip_address', 45)->nullable()->comment('IP address of the session');
             $table->text('user_agent')->nullable()->comment('User agent string of the session');
             $table->longText('payload')->comment('Session data payload');
@@ -84,13 +72,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * This method drops the 'sessions', 'password_reset_tokens', and 'users' tables in that order.
-     *
-     * @return void
-     */
     public function down(): void
     {
         Schema::dropIfExists('sessions');

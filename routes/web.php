@@ -29,6 +29,12 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/photos', 'settings.photos')->name('settings.photos');
     Volt::route('settings/interests', 'settings.interests')->name('settings.interests');
 
+    Volt::route('/messages', 'messages-inbox')->name('messages.inbox');
+    Volt::route('/messages/sent', 'messages-sent')->name('messages.sent');
+    Volt::route('/messages/drafts', 'messages-drafts')->name('messages.drafts');
+    Volt::route('/messages/compose', 'messages-compose')->name('messages.compose');
+    // بقیه روت‌ها...
+
     // Friends Routes
     Route::middleware(['auth'])->group(function () {
         Route::get('/friends', \App\Livewire\FriendsIndex::class)->name('friends.index');
@@ -62,6 +68,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/support', \App\Livewire\SupportPage::class)->name('support');
     Route::get('/payments', \App\Livewire\PaymentHistory::class)->name('payments.history');
     Route::get('/notifications', \App\Livewire\NotificationsPage::class)->name('notifications');
+
+
+
+
+
 
 });
 
