@@ -7,6 +7,7 @@ use App\Enums\Gender;
 use App\Models\Message;
 use App\Models\User;
 use Livewire\Component;
+use Carbon\Carbon;
 
 class MessagesCompose extends Component
 {
@@ -34,6 +35,8 @@ class MessagesCompose extends Component
             ->when($this->searchTerm, function ($query) {
                 $query->where('display_name', 'like', '%' . $this->searchTerm . '%');
             })
+            ->whereNotNull('birth_date') // مطمئن شو که birth_date خالی نیست
+            ->whereRaw('TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 18 AND 40') // شرط سنی: بین 18 تا 40 سال
             ->get();
 
         \Log::info('Found users:', ['count' => $users->count()]);
@@ -115,6 +118,8 @@ class MessagesCompose extends Component
 
         $recipients = User::where('id', '!=', auth()->id())
             ->where('gender', $genderFilter)
+            ->whereNotNull('birth_date') // مطمئن شو که birth_date خالی نیست
+            ->whereRaw('TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 18 AND 40') // شرط سنی: بین 18 تا 40 سال
             ->get();
 
         \Log::info('Recipients Count: ' . $recipients->count());
