@@ -86,3 +86,23 @@
 .autocomplete-item:hover {
     background-color: #f8f9fa;
 }
+
+
+
+/* استایل برای ایموجی‌ها */
+.emoji-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.emoji {
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.emoji:hover {
+    transform: scale(1.2);
+}

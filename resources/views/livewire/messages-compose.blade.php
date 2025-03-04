@@ -55,6 +55,17 @@
                 <div class="col-sm-9">
                     <textarea class="form-control" id="message" rows="6" wire:model="message" required></textarea>
                     @error('message') <span class="text-danger">{{ $message }}</span> @enderror
+
+                    <!-- بخش ایموجی‌ها -->
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        @foreach ($emojis as $emoji)
+                            <span class="emoji" wire:click="addEmoji('{{ $emoji['unicode'] }}')"
+                                  style="font-size: 24px; cursor: pointer; transition: transform 0.2s ease-in-out;"
+                                  title="Add {{ $emoji['name'] }} emoji">
+                                {{ $emoji['unicode'] }}
+                            </span>
+                        @endforeach
+                    </div>
                 </div>
             </div>
             <div class="row">

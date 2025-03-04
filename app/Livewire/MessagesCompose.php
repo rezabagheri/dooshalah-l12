@@ -17,6 +17,14 @@ class MessagesCompose extends Component
     public $searchTerm = '';
     public $filteredRecipients = [];
 
+    // لیست ایموجی‌ها
+    protected $emojis = [
+        ['name' => 'smile', 'unicode' => '😊'], // Smiling Face with Smiling Eyes
+        ['name' => 'heart', 'unicode' => '❤️'], // Red Heart
+        ['name' => 'laugh', 'unicode' => '😂'], // Face with Tears of Joy
+        ['name' => 'sad', 'unicode' => '😢'],   // Crying Face
+    ];
+
     public function mount()
     {
         $this->loadRecipients();
@@ -35,8 +43,8 @@ class MessagesCompose extends Component
             ->when($this->searchTerm, function ($query) {
                 $query->where('display_name', 'like', '%' . $this->searchTerm . '%');
             })
-            ->whereNotNull('birth_date') // مطمئن شو که birth_date خالی نیست
-            ->whereRaw('TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 18 AND 40') // شرط سنی: بین 18 تا 40 سال
+            ->whereNotNull('birth_date')
+            ->whereRaw('TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 18 AND 40')
             ->get();
 
         \Log::info('Found users:', ['count' => $users->count()]);
@@ -63,6 +71,13 @@ class MessagesCompose extends Component
         $this->searchTerm = $value;
         $this->loadRecipients();
         \Log::info('Filtered recipients after search:', ['count' => count($this->filteredRecipients)]);
+    }
+
+    public function addEmoji($emojiUnicode)
+    {
+        \Log::info('Adding emoji to message:', ['emojiUnicode' => $emojiUnicode]);
+        // ایموجی رو به متن پیام اضافه می‌کنیم
+        $this->message = $this->message . ($this->message ? ' ' : '') . $emojiUnicode;
     }
 
     public function selectRecipient($userId)
@@ -118,8 +133,8 @@ class MessagesCompose extends Component
 
         $recipients = User::where('id', '!=', auth()->id())
             ->where('gender', $genderFilter)
-            ->whereNotNull('birth_date') // مطمئن شو که birth_date خالی نیست
-            ->whereRaw('TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 18 AND 40') // شرط سنی: بین 18 تا 40 سال
+            ->whereNotNull('birth_date')
+            ->whereRaw('TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 18 AND 40')
             ->get();
 
         \Log::info('Recipients Count: ' . $recipients->count());
@@ -128,6 +143,7 @@ class MessagesCompose extends Component
 
         return view('livewire.messages-compose', [
             'recipients' => $recipients,
+            'emojis' => $this->emojis, // لیست ایموجی‌ها رو به ویو می‌فرستیم
         ]);
     }
 }

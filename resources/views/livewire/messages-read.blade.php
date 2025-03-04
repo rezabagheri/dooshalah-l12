@@ -9,12 +9,26 @@ new class extends Component {
     public $replySubject = '';
     public $replyMessage = '';
 
+    // لیست ایموجی‌ها
+    protected $emojis = [
+        ['name' => 'smile', 'unicode' => '😊'], // Smiling Face with Smiling Eyes
+        ['name' => 'heart', 'unicode' => '❤️'], // Red Heart
+        ['name' => 'laugh', 'unicode' => '😂'], // Face with Tears of Joy
+        ['name' => 'sad', 'unicode' => '😢'],   // Crying Face
+    ];
+
     public function mount($id)
     {
         $this->message = Message::findOrFail($id);
         if ($this->message->receiver_id === auth()->id() && !$this->message->read_at) {
             $this->message->update(['read_at' => now()]);
         }
+    }
+
+    public function addEmoji($emojiUnicode)
+    {
+        \Log::info('Adding emoji to reply message:', ['emojiUnicode' => $emojiUnicode]);
+        $this->replyMessage = $this->replyMessage . ($this->replyMessage ? ' ' : '') . $emojiUnicode;
     }
 
     public function reply()
@@ -89,6 +103,17 @@ new class extends Component {
                     <div class="col-sm-10">
                         <textarea class="form-control" id="replyMessage" rows="4" wire:model="replyMessage" required></textarea>
                         @error('replyMessage') <span class="text-danger">{{ $message }}</span> @enderror
+
+                        <!-- بخش ایموجی‌ها -->
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            @foreach ($this->emojis as $emoji)
+                                <span class="emoji" wire:click="addEmoji('{{ $emoji['unicode'] }}')"
+                                      style="font-size: 24px; cursor: pointer; transition: transform 0.2s ease-in-out;"
+                                      title="Add {{ $emoji['name'] }} emoji">
+                                    {{ $emoji['unicode'] }}
+                                </span>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 <div class="row">
