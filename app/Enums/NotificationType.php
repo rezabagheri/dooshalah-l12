@@ -11,7 +11,9 @@ enum NotificationType: string
     case NewMessage = 'new_message';
     case NewChatMessage = 'new_chat_message';
     case AdminMessage = 'admin_message';
+
     case Other = 'other';
+
 
     public function label(): string
     {

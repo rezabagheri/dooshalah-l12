@@ -1,21 +1,15 @@
 <?php
 
 use App\Enums\MessageStatus;
+use App\Enums\NotificationType;
 use App\Models\Message;
+use App\Models\Notification;
 use Livewire\Volt\Component;
 
 new class extends Component {
     public $message;
     public $replySubject = '';
     public $replyMessage = '';
-
-    // لیست ایموجی‌ها
-    protected $emojis = [
-        ['name' => 'smile', 'unicode' => '😊'], // Smiling Face with Smiling Eyes
-        ['name' => 'heart', 'unicode' => '❤️'], // Red Heart
-        ['name' => 'laugh', 'unicode' => '😂'], // Face with Tears of Joy
-        ['name' => 'sad', 'unicode' => '😢'],   // Crying Face
-    ];
 
     public function mount($id)
     {
@@ -38,7 +32,7 @@ new class extends Component {
             'replyMessage' => 'required|string',
         ]);
 
-        Message::create([
+        $reply = Message::create([
             'sender_id' => auth()->id(),
             'receiver_id' => $this->message->sender_id,
             'subject' => $this->replySubject,
@@ -46,6 +40,25 @@ new class extends Component {
             'sent_at' => now(),
             'status' => MessageStatus::Sent->value,
             'parent_id' => $this->message->id,
+        ]);
+
+        // ارسال اعلان به گیرنده
+        Notification::create([
+            'user_id' => $this->message->sender_id,
+            'sender_id' => auth()->id(),
+            'type' => NotificationType::NewMessage->value,
+            'title' => \Illuminate\Support\Str::limit(auth()->user()->display_name . ' sent you a new message', 100, '...'),
+            'content' => 'Click to view the message.',
+            'action_url' => route('messages.read', ['id' => $reply->id]),
+            'related_id' => $reply->id,
+            'related_type' => Message::class,
+            'priority' => 2,
+            'is_read' => false,
+            'read_at' => null,
+            'data' => [
+                'sender_name' => auth()->user()->display_name ?? 'Unknown',
+                'subject' => $this->replySubject,
+            ],
         ]);
 
         $this->replySubject = '';
@@ -106,7 +119,7 @@ new class extends Component {
 
                         <!-- بخش ایموجی‌ها -->
                         <div class="mt-2 d-flex flex-wrap gap-2">
-                            @foreach ($this->emojis as $emoji)
+                            @foreach (get_emojis() as $emoji)
                                 <span class="emoji" wire:click="addEmoji('{{ $emoji['unicode'] }}')"
                                       style="font-size: 24px; cursor: pointer; transition: transform 0.2s ease-in-out;"
                                       title="Add {{ $emoji['name'] }} emoji">

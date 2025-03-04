@@ -4,8 +4,10 @@ namespace App\Livewire;
 
 use App\Enums\MessageStatus;
 use App\Enums\Gender;
+use App\Enums\NotificationType;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\Notification;
 use Livewire\Component;
 use Carbon\Carbon;
 
@@ -16,14 +18,6 @@ class MessagesCompose extends Component
     public $receiverId = null;
     public $searchTerm = '';
     public $filteredRecipients = [];
-
-    // لیست ایموجی‌ها
-    protected $emojis = [
-        ['name' => 'smile', 'unicode' => '😊'], // Smiling Face with Smiling Eyes
-        ['name' => 'heart', 'unicode' => '❤️'], // Red Heart
-        ['name' => 'laugh', 'unicode' => '😂'], // Face with Tears of Joy
-        ['name' => 'sad', 'unicode' => '😢'],   // Crying Face
-    ];
 
     public function mount()
     {
@@ -76,7 +70,6 @@ class MessagesCompose extends Component
     public function addEmoji($emojiUnicode)
     {
         \Log::info('Adding emoji to message:', ['emojiUnicode' => $emojiUnicode]);
-        // ایموجی رو به متن پیام اضافه می‌کنیم
         $this->message = $this->message . ($this->message ? ' ' : '') . $emojiUnicode;
     }
 
@@ -113,13 +106,33 @@ class MessagesCompose extends Component
             throw new \Exception('Invalid receiver ID');
         }
 
-        Message::create([
+        // ذخیره پیام
+        $message = Message::create([
             'sender_id' => auth()->id(),
             'receiver_id' => (int) $this->receiverId,
             'subject' => $this->subject,
             'message' => $this->message,
-            'sent_at' => now()->toDateTimeString(),
+            'sent_at' => now(),
             'status' => 'sent',
+        ]);
+
+        // ارسال اعلان به گیرنده
+        Notification::create([
+            'user_id' => $this->receiverId,
+            'sender_id' => auth()->id(),
+            'type' => NotificationType::NewMessage->value,
+            'title' => \Illuminate\Support\Str::limit(auth()->user()->display_name . ' sent you a new message', 100, '...'),
+            'content' => 'Click to view the message.',
+            'action_url' => route('messages.read', ['id' => $message->id]),
+            'related_id' => $message->id,
+            'related_type' => Message::class,
+            'priority' => 2,
+            'is_read' => false,
+            'read_at' => null,
+            'data' => [
+                'sender_name' => auth()->user()->display_name ?? 'Unknown',
+                'subject' => $this->subject,
+            ],
         ]);
 
         $this->reset(['subject', 'message', 'receiverId', 'searchTerm']);
@@ -143,7 +156,7 @@ class MessagesCompose extends Component
 
         return view('livewire.messages-compose', [
             'recipients' => $recipients,
-            'emojis' => $this->emojis, // لیست ایموجی‌ها رو به ویو می‌فرستیم
+            'emojis' => get_emojis(),
         ]);
     }
 }
