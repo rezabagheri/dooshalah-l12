@@ -8,11 +8,14 @@ use App\Enums\NotificationType;
 use App\Models\Message;
 use App\Models\User;
 use App\Models\Notification;
+use App\Traits\HasFeatureAccess;
 use Livewire\Component;
 use Carbon\Carbon;
 
 class MessagesCompose extends Component
 {
+    use HasFeatureAccess;
+
     public $subject = '';
     public $message = '';
     public $receiverId = null;
@@ -21,6 +24,12 @@ class MessagesCompose extends Component
 
     public function mount()
     {
+        // چک کردن دسترسی به ارسال پیام
+        if (!$this->hasFeatureAccess('send_message')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to send messages.');
+            return;
+        }
+
         $this->loadRecipients();
         \Log::info('Initial filtered recipients count:', ['count' => count($this->filteredRecipients)]);
     }
@@ -83,6 +92,12 @@ class MessagesCompose extends Component
 
     public function sendMessage()
     {
+        // چک کردن دسترسی به ارسال پیام
+        if (!$this->hasFeatureAccess('send_message')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to send messages.');
+            return;
+        }
+
         $this->validate([
             'subject' => 'required|string|max:255',
             'message' => 'required|string',

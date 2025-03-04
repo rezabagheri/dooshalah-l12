@@ -4,15 +4,24 @@ use App\Enums\MessageStatus;
 use App\Enums\NotificationType;
 use App\Models\Message;
 use App\Models\Notification;
+use App\Traits\HasFeatureAccess;
 use Livewire\Volt\Component;
 
 new class extends Component {
+    use HasFeatureAccess;
+
     public $message;
     public $replySubject = '';
     public $replyMessage = '';
 
     public function mount($id)
     {
+        // چک کردن دسترسی به خواندن پیام
+        if (!$this->hasFeatureAccess('read_message')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to read messages.');
+            return;
+        }
+
         $this->message = Message::findOrFail($id);
         if ($this->message->receiver_id === auth()->id() && !$this->message->read_at) {
             $this->message->update(['read_at' => now()]);
@@ -27,6 +36,12 @@ new class extends Component {
 
     public function reply()
     {
+        // چک کردن دسترسی به ارسال پیام
+        if (!$this->hasFeatureAccess('send_message')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to send messages.');
+            return;
+        }
+
         $this->validate([
             'replySubject' => 'required|string|max:255',
             'replyMessage' => 'required|string',

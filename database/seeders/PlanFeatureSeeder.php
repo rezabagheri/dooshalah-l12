@@ -23,10 +23,11 @@ class PlanFeatureSeeder extends Seeder
             'accept_request',
             'remove_friend',
             'block_user',
-            'unblock_user', // اضافه شده
+            'unblock_user',
             'report_user',
             'send_message',
             'read_message',
+            'message_inbox',
         ];
         $viewSuggestionsOnly = ['view_suggestions'];
 

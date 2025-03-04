@@ -57,6 +57,10 @@ class FeatureSeeder extends Seeder
                 'description' => 'Report users for inappropriate behavior.',
             ],
             [
+                'name' => 'message_inbox',
+                'description' => 'View Inbox.',
+            ],
+            [
                 'name' => 'send_message',
                 'description' => 'Send private messages to other users.',
             ],

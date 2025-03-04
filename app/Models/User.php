@@ -145,48 +145,6 @@ class User extends Authenticatable
         return $this->approvedMedia()->where('is_profile', false)->orderBy('order')->get();
     }
 
-
-    // رابط‌های جدید
-    public function friendships(): HasMany
-    {
-        return $this->hasMany(Friendship::class, 'user_id');
-    }
-
-    public function friendRequestsReceived(): HasMany
-    {
-        return $this->hasMany(Friendship::class, 'target_id');
-    }
-
-    public function blocks(): HasMany
-    {
-        return $this->hasMany(Block::class, 'user_id');
-    }
-
-    public function blockedBy(): HasMany
-    {
-        return $this->hasMany(Block::class, 'target_id');
-    }
-
-    public function reports(): HasMany
-    {
-        return $this->hasMany(Report::class, 'user_id');
-    }
-
-    public function reportedBy(): HasMany
-    {
-        return $this->hasMany(Report::class, 'target_id');
-    }
-
-    // متدهای کمکی (بعداً کامل می‌کنیم)
-    public function friends()
-    {
-        return $this->friendships()->where('status', 'accepted')->with('target');
-    }
-
-    public function userAnswers(): HasMany
-    {
-        return $this->hasMany(UserAnswer::class, 'user_id');
-    }
     /**
      * Scope to filter users with unapproved media.
      *
@@ -345,5 +303,10 @@ class User extends Authenticatable
     public function isBlocked(): bool
     {
         return $this->status === UserStatus::Blocked;
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
     }
 }
