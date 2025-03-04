@@ -22,7 +22,7 @@
     color: #fff;
     font-size: 12px;
     line-height: 1.5;
-    z-index: 10; /* مطمئن می‌شه بالای عکس باشه */
+    z-index: 10;
 }
 
 /* رنگ‌های مختلف برای ribbon */
@@ -30,16 +30,15 @@
     background-color: #ffc107;
 }
 
-
 .card-img-top {
     position: relative;
     overflow: hidden;
 }
 
 .card-img-top img {
-    max-height: 200px; /* حداکثر ارتفاع */
-    width: 100%; /* عرض کامل */
-    object-fit: contain; /* کل عکس بدون برش */
+    max-height: 200px;
+    width: 100%;
+    object-fit: contain;
 }
 
 .card-hover-effect {
@@ -58,7 +57,32 @@
 }
 
 .notification-item {
-    padding: 10px 15px; /* فاصله از چپ و راست */
-    white-space: normal; /* اجازه شکستن خط */
-    word-break: break-word; /* شکستن کلمات طولانی */
+    padding: 10px 15px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* استایل برای لیست جستجوی سفارشی */
+.autocomplete-list {
+    position: absolute;
+    width: 100%;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    top: 100%;
+    margin-top: 0.25rem;
+}
+
+.autocomplete-item {
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.autocomplete-item:hover {
+    background-color: #f8f9fa;
 }

@@ -33,7 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('/messages', 'messages-inbox')->name('messages.inbox');
     Volt::route('/messages/sent', 'messages-sent')->name('messages.sent');
     Volt::route('/messages/drafts', 'messages-drafts')->name('messages.drafts');
-    Volt::route('/messages/compose', 'messages-compose')->name('messages.compose');
+    Route::get('/messages/compose', \App\Livewire\MessagesCompose::class)->name('messages.compose');
     Volt::route('/messages/read/{id}', 'messages-read')->name('messages.read');
 
 

@@ -38,7 +38,7 @@ new class extends Component {
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
                                 <img src="{{ $message->receiver->profilePicture()?->media->path ? asset('storage/' . $message->receiver->profilePicture()->media->path) : '/dist/assets/img/user2-160x160.jpg' }}"
-                                     class="rounded-circle me-2" style="width: 40px; height: 40px;" alt="Receiver Image">
+                                     class="me-2" style="width: 40px; height: 40px;" alt="Receiver Image">
                                 <div>
                                     <strong>{{ $message->receiver->display_name ?? 'Unknown' }}</strong>
                                     <p class="text-muted mb-0">{{ \Illuminate\Support\Str::limit($message->subject, 30) }}</p>

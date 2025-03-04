@@ -1,4 +1,3 @@
-// resources/js/app.js
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'admin-lte/dist/js/adminlte';
 
@@ -61,8 +60,29 @@ document.addEventListener('livewire:init', () => {
     });
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('AdminLTE loaded');
+Livewire.on('friendship-request-sent', () => {
+    showToast('Friendship request sent successfully', 'success');
+});
+Livewire.on('friendship-accepted', () => {
+    showToast('Friendship accepted', 'success');
+});
+Livewire.on('friendship-rejected', () => {
+    showToast('Friendship rejected', 'warning');
+});
+Livewire.on('friendship-cancelled', () => {
+    showToast('Friendship request cancelled', 'info');
+});
+Livewire.on('friendship-removed', () => {
+    showToast('Friend removed', 'info');
+});
+Livewire.on('user-blocked', () => {
+    showToast('User blocked', 'warning');
+});
+Livewire.on('user-unblocked', () => {
+    showToast('User unblocked', 'success');
+});
+Livewire.on('user-reported', () => {
+    showToast('User reported', 'danger');
 });
 
 function showToast(message, type) {

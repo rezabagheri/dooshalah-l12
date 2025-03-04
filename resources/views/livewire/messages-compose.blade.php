@@ -1,36 +1,3 @@
-<?php
-
-use App\Enums\MessageStatus;
-use App\Models\Message;
-use Livewire\Volt\Component;
-
-new class extends Component {
-    public $subject = '';
-    public $message = '';
-    public $receiverId;
-
-    public function sendMessage(): void
-    {
-        $this->validate([
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string',
-            'receiverId' => 'required|exists:users,id',
-        ]);
-
-        Message::create([
-            'sender_id' => auth()->id(),
-            'receiver_id' => $this->receiverId,
-            'subject' => $this->subject,
-            'message' => $this->message,
-            'sent_at' => now(),
-            'status' => MessageStatus::Sent->value,
-        ]);
-
-        $this->reset(['subject', 'message', 'receiverId']);
-        session()->flash('success', 'Message sent successfully!');
-    }
-}; ?>
-
 <x-messages.layout heading="Compose New Message" subheading="Send a new message to someone">
     <div>
         @if (session('success'))
@@ -41,15 +8,39 @@ new class extends Component {
 
         <form wire:submit="sendMessage" class="form-horizontal">
             <div class="row mb-3">
-                <label for="receiverId" class="col-sm-3 col-form-label">To</label>
-                <div class="col-sm-9">
-                    <select class="form-control" id="receiverId" wire:model="receiverId" required>
-                        <option value="">Select a recipient</option>
-                        @foreach (\App\Models\User::where('id', '!=', auth()->id())->get() as $user)
-                            <option value="{{ $user->id }}">{{ $user->display_name }}</option>
-                        @endforeach
-                    </select>
+                <label for="searchTerm" class="col-sm-3 col-form-label">To</label>
+                <div class="col-sm-9 position-relative">
+                    <input type="text" class="form-control" id="searchTerm" wire:input.debounce.300ms="updateSearch($event.target.value)" placeholder="Search for a recipient" autocomplete="off">
+                    <!-- دیباگ برای چک کردن مقدار searchTerm -->
+                    <div class="text-muted mt-1">Current search: {{ $searchTerm ?: 'None' }}</div>
+                    @if ($searchTerm)
+                        <div class="position-absolute w-100 bg-white border rounded shadow-sm mt-1 autocomplete-list" style="max-height: 200px; overflow-y: auto; z-index: 1000;">
+                            @if (empty($filteredRecipients))
+                                <div class="p-2 text-muted">No matching recipients found</div>
+                            @else
+                                @foreach ($filteredRecipients as $user)
+                                    <div class="autocomplete-item" wire:click="selectRecipient({{ $user['id'] }})">
+                                        <img src="{{ isset($user['profile_picture']) && !empty($user['profile_picture']['media']['path']) ? asset('storage/' . $user['profile_picture']['media']['path']) : asset('/dist/assets/img/user2-160x160.jpg') }}"
+                                             style="width: 20px; height: 20px; margin-right: 10px;" alt="{{ $user['display_name'] }}">
+                                        <span>{{ $user['display_name'] }}</span>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                    @endif
+                    <input type="hidden" name="receiverId" wire:model="receiverId" required>
                     @error('receiverId') <span class="text-danger">{{ $message }}</span> @enderror
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="col-sm-3 col-form-label">Selected Recipient</label>
+                <div class="col-sm-9">
+                    <span>
+                        @php
+                            $selectedRecipient = $receiverId ? $recipients->firstWhere('id', $receiverId) : null;
+                        @endphp
+                        {{ $selectedRecipient ? $selectedRecipient->display_name : 'None selected' }}
+                    </span>
                 </div>
             </div>
             <div class="row mb-3">
