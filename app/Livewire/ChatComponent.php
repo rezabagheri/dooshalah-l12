@@ -12,21 +12,11 @@ class ChatComponent extends Component
     public $receiverId;
     public $messageContent = '';
     public $messages = [];
-    public $lastMessageId = 0;
 
     public function mount($user)
     {
         $this->receiverId = $user;
         $this->loadMessages();
-        $this->lastMessageId = ChatMessage::where(function ($query) {
-            $query->where('sender_id', auth()->id())
-                  ->where('receiver_id', $this->receiverId);
-        })->orWhere(function ($query) {
-            $query->where('sender_id', $this->receiverId)
-                  ->where('receiver_id', auth()->id());
-        })->max('id') ?? 0;
-
-        \Log::info("Mounted ChatComponent for user {$this->receiverId}, lastMessageId = {$this->lastMessageId}");
     }
 
     public function loadMessages()
@@ -50,49 +40,33 @@ class ChatComponent extends Component
         })->toArray();
     }
 
-    public function checkForNewMessages()
-    {
-        $newMessageId = ChatMessage::where(function ($query) {
-            $query->where('sender_id', auth()->id())
-                  ->where('receiver_id', $this->receiverId);
-        })->orWhere(function ($query) {
-            $query->where('sender_id', $this->receiverId)
-                  ->where('receiver_id', auth()->id());
-        })->max('id') ?? 0;
-
-        \Log::info("Checking for new messages: lastMessageId = {$this->lastMessageId}, newMessageId = {$newMessageId}");
-
-        if ($newMessageId > $this->lastMessageId) {
-            \Log::info("New message detected, loading messages...");
-            $this->lastMessageId = $newMessageId;
-            $this->loadMessages();
-        }
-    }
-
     public function sendMessage()
-    {
-        $this->validate([
-            'messageContent' => 'required|string|max:1000',
-        ]);
+{
+    $this->validate([
+        'messageContent' => 'required|string|max:1000',
+    ]);
 
-        $message = ChatMessage::create([
-            'sender_id' => auth()->id(),
-            'receiver_id' => $this->receiverId,
-            'content' => $this->messageContent,
-        ]);
+    $message = ChatMessage::create([
+        'sender_id' => auth()->id(),
+        'receiver_id' => $this->receiverId,
+        'content' => $this->messageContent,
+    ]);
 
-        // ارسال نوتیفیکیشن به کاربر گیرنده
-        $receiver = User::find($this->receiverId);
-        $sender = auth()->user();
-        $fcmToken = $receiver->fcmTokens()->first()?->token;
+    // ارسال نوتیفیکیشن به کاربر گیرنده
+    $receiver = User::find($this->receiverId);
+    $sender = auth()->user();
+    $fcmToken = $receiver->fcmTokens()->first()?->token;
 
-        if ($fcmToken) {
-            $this->sendFcmNotification($fcmToken, $sender->display_name, $this->messageContent, $message);
-        }
-
-        $this->messageContent = '';
-        $this->loadMessages();
+    if ($fcmToken) {
+        \Log::info("Sending FCM notification to user {$receiver->id} with token: {$fcmToken}");
+        $this->sendFcmNotification($fcmToken, $sender->display_name, $this->messageContent, $message);
+    } else {
+        \Log::warning("No FCM token found for user {$receiver->id}");
     }
+
+    $this->messageContent = '';
+    $this->loadMessages();
+}
 
     private function sendFcmNotification($fcmToken, $senderName, $messageContent, $message)
     {
@@ -105,7 +79,11 @@ class ChatComponent extends Component
                     'title' => "New Message from $senderName",
                     'body' => $messageContent,
                 ])
-                ->withData(['message_id' => (string) $message->id]);
+                ->withData([
+                    'message_id' => (string) $message->id,
+                    'sender_id' => (string) $message->sender_id,
+                    'receiver_id' => (string) $message->receiver_id,
+                ]);
 
             $messaging->send($message);
 

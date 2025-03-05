@@ -12,6 +12,7 @@
 </head>
 
 <body class="@yield('body-class')">
+
     @yield('content')
     @livewireScripts
     @yield('scripts')

@@ -5,7 +5,7 @@
         <button wire:click="loadMessages">Refresh Messages</button>
     </div>
 
-    <div wire:poll.15s="checkForNewMessages" class="messages" style="height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+    <div class="messages" style="height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
         @foreach ($messages as $message)
             <div style="margin-bottom: 10px;">
                 <strong>{{ $message['sender_display_name'] }}:</strong>

@@ -141,19 +141,34 @@ window.requestNotificationPermission = async function() {
                 console.log('An error occurred while retrieving token.', err);
             });
 
-            // دریافت نوتیfiکیشن‌ها در foreground
+            // دریافت نوتیفیکیشن‌ها و آپدیت صفحه‌ی چت
             onMessage(messaging, (payload) => {
                 console.log('Message received:', payload);
+
+                // نمایش نوتیفیکیشن
                 const notification = new Notification(payload.notification.title, {
                     body: payload.notification.body,
                 });
+
+                // آپدیت صفحه‌ی چت
+                const senderId = payload.data.sender_id;
+                const receiverId = payload.data.receiver_id;
+                const currentUserId = document.querySelector('meta[name="user-id"]')?.content;
+
+                if (currentUserId) {
+                    // چک کردن اینکه آیا کاربر توی صفحه‌ی چت درست هست یا نه
+                    const currentChatId = window.location.pathname.split('/').pop();
+                    if (currentUserId === receiverId && currentChatId === senderId) {
+                        // فراخوانی متد loadMessages توی Livewire
+                        window.livewire.emit('loadMessages');
+                    }
+                }
             });
         } else {
             console.log('Notification permission denied.');
         }
     });
-};// دریافت پیام‌های foreground (وقتی کاربر توی صفحه فعاله)
-
+};
 
 
 async function getSanctumToken() {

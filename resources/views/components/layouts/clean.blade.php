@@ -13,6 +13,7 @@ new class extends Component {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $page_title ?? 'My App' }}</title>
+    <meta name="user-id" content="{{ auth()->id() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
