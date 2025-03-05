@@ -71,6 +71,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/support', \App\Livewire\SupportPage::class)->name('support');
     Route::get('/payments', \App\Livewire\PaymentHistory::class)->name('payments.history');
     Route::get('/notifications', \App\Livewire\NotificationsPage::class)->name('notifications');
+
+    // Online chat
+    Route::get('/chat', \App\Livewire\ChatIndex::class)->name('chat.index');
+    Route::get('/chat/{user}', \App\Livewire\ChatComponent::class)->name('chat.show');
 });
 
+
+
+Route::middleware('auth')->get('/api/get-token', function () {
+    $user = auth()->user();
+    $token = $user->createToken('api-token')->plainTextToken;
+    return response()->json(['token' => $token]);
+});
 require __DIR__ . '/auth.php';

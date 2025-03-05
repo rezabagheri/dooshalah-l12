@@ -97,9 +97,6 @@ function showToast(message, type) {
 
 
 //firebase
-//import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-
-// تنظیمات firebaseConfig که از Firebase Console گرفتی
 const firebaseConfig = {
     apiKey: "AIzaSyAQmSPTFuocYjUuT-5tBr8ddn_lLEBc80M",
     authDomain: "dooshalahchat.firebaseapp.com",
@@ -113,8 +110,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-// تابع برای درخواست اجازه‌ی نوتیفیکیشن و گرفتن توکن
-window.requestNotificationPermission = function() {
+window.requestNotificationPermission = async function() {
+    const token = await getSanctumToken();
+    if (!token) {
+        console.error('Could not fetch Sanctum token');
+        return;
+    }
+
     Notification.requestPermission().then((permission) => {
         if (permission === 'granted') {
             console.log('Notification permission granted.');
@@ -126,7 +128,7 @@ window.requestNotificationPermission = function() {
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'Authorization': 'Bearer 2|UNeYothF9gWWh05KTEmi1rjQfGpvyfgBR3dz1Nv698ab54e7', // توکنی که تولید کردی
+                            'Authorization': `Bearer ${token}`,
                         },
                         body: JSON.stringify({ token: currentToken }),
                     }).then(response => response.json())
@@ -138,15 +140,46 @@ window.requestNotificationPermission = function() {
             }).catch((err) => {
                 console.log('An error occurred while retrieving token.', err);
             });
+
+            // دریافت نوتیfiکیشن‌ها در foreground
+            onMessage(messaging, (payload) => {
+                console.log('Message received:', payload);
+                const notification = new Notification(payload.notification.title, {
+                    body: payload.notification.body,
+                });
+            });
         } else {
             console.log('Notification permission denied.');
         }
     });
-};
-// دریافت پیام‌های foreground (وقتی کاربر توی صفحه فعاله)
-onMessage(messaging, (payload) => {
-    console.log('Message received:', payload);
-    const notification = new Notification(payload.notification.title, {
-        body: payload.notification.body,
-    });
-});
+};// دریافت پیام‌های foreground (وقتی کاربر توی صفحه فعاله)
+
+
+
+async function getSanctumToken() {
+    try {
+        const response = await fetch('/api/get-token', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            },
+        });
+        const data = await response.json();
+        return data.token;
+    } catch (error) {
+        console.error('Error fetching Sanctum token:', error);
+        return null;
+    }
+}
+
+
+
+async function getStoredToken() {
+    let token = localStorage.getItem('sanctum_token');
+    if (!token) {
+        token = await getSanctumToken();
+    }
+    return token;
+}
