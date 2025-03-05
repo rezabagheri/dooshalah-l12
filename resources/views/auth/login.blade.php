@@ -53,7 +53,9 @@
     </p>
 
     <button wire:click="toggleDarkMode" class="btn btn-secondary mt-3">Toggle Dark Mode</button>
+
 </div>
+
 
 <script>
     document.addEventListener('livewire:init', () => {

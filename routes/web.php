@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Livewire\Volt\Volt;
 
+
+
+Route::get('/test-firebase', [App\Http\Controllers\TestFirebaseController::class, 'testNotification']);
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
