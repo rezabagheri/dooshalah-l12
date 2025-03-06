@@ -144,24 +144,31 @@ window.requestNotificationPermission = async function() {
             // دریافت نوتیفیکیشن‌ها و آپدیت صفحه‌ی چت
             onMessage(messaging, (payload) => {
                 console.log('Message received:', payload);
-
-                // نمایش نوتیفیکیشن
                 const notification = new Notification(payload.notification.title, {
                     body: payload.notification.body,
                 });
 
-                // آپدیت صفحه‌ی چت
                 const senderId = payload.data.sender_id;
                 const receiverId = payload.data.receiver_id;
                 const currentUserId = document.querySelector('meta[name="user-id"]')?.content;
 
+                console.log('Sender ID:', senderId);
+                console.log('Receiver ID:', receiverId);
+                console.log('Current User ID:', currentUserId);
+
                 if (currentUserId) {
-                    // چک کردن اینکه آیا کاربر توی صفحه‌ی چت درست هست یا نه
                     const currentChatId = window.location.pathname.split('/').pop();
+                    console.log('Current Chat ID:', currentChatId);
+                    console.log('Comparing: currentUserId', currentUserId, 'with receiverId', receiverId);
+                    console.log('Comparing: currentChatId', currentChatId, 'with senderId', senderId);
                     if (currentUserId === receiverId && currentChatId === senderId) {
-                        // فراخوانی متد loadMessages توی Livewire
+                        console.log('Updating chat messages...');
                         window.livewire.emit('loadMessages');
+                    } else {
+                        console.log('Condition not met: User ID or Chat ID mismatch');
                     }
+                } else {
+                    console.log('Current User ID not found');
                 }
             });
         } else {
