@@ -3,11 +3,13 @@
 use App\Enums\Gender;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Mail\WelcomeMail;
 use App\Models\Country;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -31,9 +33,6 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public string $bodyClass = 'login-page bg-body-secondary';
 
-    /**
-     * Handle an incoming registration request.
-     */
     public function register(): void
     {
         $validated = $this->validate([
@@ -60,20 +59,17 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         Auth::login($user);
 
-        $this->redirect(route('dashboard', absolute: false), navigate: true);
+        // ارسال ایمیل با روش Mail::to()
+        Mail::to($user->email)->send(new WelcomeMail($user));
+
+        $this->redirect(route('settings.profile', absolute: false), navigate: true);
     }
 
-    /**
-     * Get countries for dropdowns.
-     */
     public function getCountriesProperty()
     {
         return Country::all()->pluck('name', 'id')->toArray();
     }
 
-    /**
-     * Get gender options for dropdown.
-     */
     public function getGenderOptionsProperty()
     {
         return [
@@ -82,18 +78,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
         ];
     }
 
-    /**
-     * Toggle dark mode.
-     */
     public function toggleDarkMode(): void
     {
         $this->bodyClass = $this->bodyClass === 'login-page bg-body-secondary' ? 'login-page dark-mode' : 'login-page bg-body-secondary';
         $this->dispatch('updateBodyClass', $this->bodyClass);
     }
 
-    /**
-     * Render the view.
-     */
     public function render(): View
     {
         return view('auth.register')->layout('components.layouts.auth', [
