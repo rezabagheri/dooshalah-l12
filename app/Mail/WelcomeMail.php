@@ -24,7 +24,7 @@ class WelcomeMail extends Mailable
     {
         return new Envelope(
             subject: 'Welcome to Doosh Chat!',
-            from: 'info@doosh-chat.com',
+            from: new \Illuminate\Mail\Mailables\Address('info@doosh-chat.maloons.com', 'Doosh Chat'),
         );
     }
 

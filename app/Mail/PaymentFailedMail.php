@@ -5,6 +5,8 @@ namespace App\Mail;
 use App\Models\Payment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class PaymentFailedMail extends Mailable
@@ -20,14 +22,28 @@ class PaymentFailedMail extends Mailable
         $this->reason = $reason;
     }
 
-    public function build()
+    public function envelope(): Envelope
     {
-        return $this->subject('Payment Failed - Action Required')
-                    ->view('emails.payment-failed')
-                    ->with([
-                        'userName' => $this->payment->user->display_name,
-                        'reason' => $this->reason,
-                        'supportLink' => route('support'), // فرض بر اینکه صفحه پشتیبانی داری
-                    ]);
+        return new Envelope(
+            subject: 'Payment Failed - Action Required',
+            from: new \Illuminate\Mail\Mailables\Address('info@doosh-chat.maloons.com', 'Doosh Chat'),
+        );
+    }
+
+    public function content(): Content
+    {
+        return new Content(
+            view: 'emails.payment-failed',
+            with: [
+                'userName' => $this->payment->user->display_name,
+                'reason' => $this->reason,
+                'supportLink' => route('support'),
+            ]
+        );
+    }
+
+    public function attachments(): array
+    {
+        return [];
     }
 }

@@ -35,6 +35,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     public function register(): void
     {
+        \Log::info('Starting register method'); // لاگ شروع متد
+
         $validated = $this->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
@@ -51,16 +53,30 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        \Log::info('Validation passed', $validated); // لاگ بعد از اعتبارسنجی
+
         $validated['password'] = Hash::make($validated['password']);
         $validated['role'] = UserRole::Normal->value;
         $validated['status'] = UserStatus::Pending->value;
 
+        \Log::info('Creating user'); // لاگ قبل از ایجاد کاربر
         event(new Registered(($user = User::create($validated))));
 
+        \Log::info('User created', ['user_id' => $user->id]); // لاگ بعد از ایجاد کاربر
+
         Auth::login($user);
+        \Log::info('User logged in', ['user_id' => $user->id]); // لاگ بعد از لاگین
 
         // ارسال ایمیل با روش Mail::to()
-        Mail::to($user->email)->send(new WelcomeMail($user));
+        \Log::info('Sending welcome email to: ' . $user->email); // لاگ قبل از ارسال ایمیل
+        try {
+           Mail::to($user->email)->send(new WelcomeMail($user));
+            \Log::info('Welcome email sent to: ' . $user->email);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send welcome email: ' . $e->getMessage());
+        }
+        //Mail::to($user->email)->send(new WelcomeMail($user));
+
 
         $this->redirect(route('settings.profile', absolute: false), navigate: true);
     }
