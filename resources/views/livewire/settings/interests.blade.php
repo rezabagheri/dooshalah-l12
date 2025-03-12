@@ -10,6 +10,7 @@ new class extends Component {
     public array $answers = [];
     public array $originalAnswers = [];
     public array $questionsByPage = [];
+    public array $tempAnswers = [];
 
     public function mount(): void
     {
@@ -23,9 +24,32 @@ new class extends Component {
         $userAnswers = UserAnswer::where('user_id', Auth::id())->get()->pluck('answer', 'question_id')->toArray();
         foreach ($userAnswers as $questionId => $answer) {
             $decodedAnswer = json_decode($answer, true);
-            $this->answers[$questionId] = $decodedAnswer;
-            $this->originalAnswers[$questionId] = $decodedAnswer;
+            $question = Question::find($questionId);
+            if ($question && $question->answer_type === 'multiple' && !is_array($decodedAnswer)) {
+                $this->answers[$questionId] = [$decodedAnswer];
+                $this->originalAnswers[$questionId] = [$decodedAnswer];
+                $this->tempAnswers[$questionId] = [$decodedAnswer];
+            } else {
+                $this->answers[$questionId] = $decodedAnswer;
+                $this->originalAnswers[$questionId] = $decodedAnswer;
+                $this->tempAnswers[$questionId] = $decodedAnswer;
+            }
         }
+
+        \Log::info('Mounted answers', ['answers' => $this->answers]);
+    }
+
+    public function updateAnswer($questionId, $value): void
+    {
+        $question = Question::find($questionId);
+        if ($question) {
+            if ($question->answer_type === 'multiple') {
+                $this->tempAnswers[$questionId] = is_array($value) ? $value : explode(',', $value);
+            } else {
+                $this->tempAnswers[$questionId] = $value;
+            }
+        }
+        \Log::info("Updated answer for question: {$questionId}", ['value' => $this->tempAnswers[$questionId]]);
     }
 
     public function nextPage(): void
@@ -44,6 +68,9 @@ new class extends Component {
 
     public function saveAnswers(): void
     {
+        $this->answers = $this->tempAnswers;
+        \Log::info('Saving answers', ['answers' => $this->answers]);
+
         try {
             $user = Auth::user();
 
@@ -59,12 +86,20 @@ new class extends Component {
                     continue;
                 }
 
+                $options = $question->options->pluck('option_value')->toArray();
+                \Log::info("Processing question: {$questionId}", [
+                    'question' => $question->question,
+                    'answer_type' => $question->answer_type,
+                    'answer' => $answer,
+                    'allowed_options' => $options,
+                ]);
+
                 $rules = match ($question->answer_type) {
                     'string' => ['required', 'string', 'max:255'],
                     'number' => ['required', 'numeric'],
                     'boolean' => ['required', 'string', 'in:0,1'],
-                    'single' => ['required', 'string', 'in:' . implode(',', $question->options->pluck('option_value')->toArray())],
-                    'multiple' => ['required', 'array'],
+                    'single' => ['required', 'string', 'in:' . implode(',', $options)],
+                    'multiple' => ['required', 'array', 'min:1'],
                     default => ['nullable'],
                 };
 
@@ -79,14 +114,23 @@ new class extends Component {
                     "answers.$questionId.numeric" => "The answer for '{$question->question}' must be a number.",
                     "answers.$questionId.in" => "The selected answer for '{$question->question}' is invalid.",
                     "answers.$questionId.array" => "The answer for '{$question->question}' must be a selection of options.",
+                    "answers.$questionId.min" => "You must select at least one option for '{$question->question}'.",
                 ];
 
                 if ($question->answer_type === 'multiple') {
+                    \Log::info("Validating multiple question: {$questionId}", [
+                        'answer' => $this->answers[$questionId],
+                        'allowed_options' => $options,
+                    ]);
                     $this->validate([
                         "answers.$questionId" => $rules,
-                        "answers.$questionId.*" => ['in:' . implode(',', $question->options->pluck('option_value')->toArray())],
+                        "answers.$questionId.*" => ['in:' . implode(',', $options)],
                     ], $messages);
                 } else {
+                    \Log::info("Validating question: {$questionId}", [
+                        'answer' => $this->answers[$questionId],
+                        'allowed_options' => $question->answer_type === 'single' ? $options : null,
+                    ]);
                     $this->validate([
                         "answers.$questionId" => $rules,
                     ], $messages);
@@ -131,32 +175,38 @@ new class extends Component {
                         @endphp
                         @switch($question['answer_type'])
                             @case('string')
-                                <input wire:model="answers.{{ $question['id'] }}" type="text" class="form-control" @if($isReadonly) readonly @endif />
+                                <input wire:model.defer="tempAnswers.{{ $question['id'] }}" type="text" class="form-control" @if($isReadonly) readonly @endif />
                                 @break
                             @case('number')
-                                <input wire:model="answers.{{ $question['id'] }}" type="number" class="form-control" @if($isReadonly) readonly @endif />
+                                <input wire:model.defer="tempAnswers.{{ $question['id'] }}" type="number" class="form-control" @if($isReadonly) readonly @endif />
                                 @break
                             @case('boolean')
-                                <select wire:model="answers.{{ $question['id'] }}" class="form-control" @if($isReadonly) disabled @endif>
+                                <select wire:change="updateAnswer('{{ $question['id'] }}', $event.target.value)" class="form-control" @if($isReadonly) disabled @endif>
                                     <option value="">{{ __('Select') }}</option>
-                                    <option value="1">{{ __('Yes') }}</option>
-                                    <option value="0">{{ __('No') }}</option>
+                                    <option value="1" {{ isset($tempAnswers[$question['id']]) && $tempAnswers[$question['id']] === '1' ? 'selected' : '' }}>{{ __('Yes') }}</option>
+                                    <option value="0" {{ isset($tempAnswers[$question['id']]) && $tempAnswers[$question['id']] === '0' ? 'selected' : '' }}>{{ __('No') }}</option>
                                 </select>
                                 @break
                             @case('single')
-                                <select wire:model="answers.{{ $question['id'] }}" class="form-control" @if($isReadonly) disabled @endif>
+                                <select wire:change="updateAnswer('{{ $question['id'] }}', $event.target.value)" class="form-control" @if($isReadonly) disabled @endif>
                                     <option value="">{{ __('Select') }}</option>
                                     @foreach ($question['options'] as $option)
-                                        <option value="{{ $option['option_value'] }}">{{ $option['option_value'] }}</option>
+                                        <option value="{{ $option['option_value'] }}" {{ isset($tempAnswers[$question['id']]) && $tempAnswers[$question['id']] === $option['option_value'] ? 'selected' : '' }}>
+                                            {{ $option['option_value'] }}
+                                        </option>
                                     @endforeach
                                 </select>
+                                <small>Selected: {{ $tempAnswers[$question['id']] ?? 'None' }}</small>
                                 @break
                             @case('multiple')
-                                <select wire:model="answers.{{ $question['id'] }}" class="form-control" multiple @if($isReadonly) disabled @endif>
+                                <select class="form-control" multiple @if($isReadonly) disabled @endif onchange="updateMultipleAnswer('{{ $question['id'] }}', this)">
                                     @foreach ($question['options'] as $option)
-                                        <option value="{{ $option['option_value'] }}">{{ $option['option_value'] }}</option>
+                                        <option value="{{ $option['option_value'] }}" {{ isset($tempAnswers[$question['id']]) && is_array($tempAnswers[$question['id']]) && in_array($option['option_value'], $tempAnswers[$question['id']]) ? 'selected' : '' }}>
+                                            {{ $option['option_value'] }}
+                                        </option>
                                     @endforeach
                                 </select>
+                                <small>Selected: {{ json_encode($tempAnswers[$question['id']] ?? []) }}</small>
                                 @break
                         @endswitch
                         @if (!$question['is_editable'])
@@ -188,3 +238,10 @@ new class extends Component {
         </form>
     </div>
 </div>
+
+<script>
+function updateMultipleAnswer(questionId, selectElement) {
+    const selectedOptions = Array.from(selectElement.selectedOptions).map(option => option.value);
+    @this.call('updateAnswer', questionId, selectedOptions);
+}
+</script>
