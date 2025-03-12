@@ -22,9 +22,16 @@ class MediaSeeder extends Seeder
         $faker = Faker::create();
         $progressBar = $this->command->getOutput()->createProgressBar(User::count());
 
-        if (!Storage::exists(self::DESTINATION_PATH)) {
-            Storage::makeDirectory(self::DESTINATION_PATH);
-            $this->command->info("Created directory: " . storage_path('app/' . self::DESTINATION_PATH));
+        // پاک کردن تمامی فایل‌ها و پوشه‌ها در مقصد
+        $destinationDir = self::DESTINATION_PATH;
+        if (Storage::exists($destinationDir)) {
+            Storage::deleteDirectory($destinationDir);
+            $this->command->info('Deleted all files in: ' . storage_path('app/' . $destinationDir));
+        }
+
+        if (!Storage::exists($destinationDir)) {
+            Storage::makeDirectory($destinationDir);
+            $this->command->info('Created directory: ' . storage_path('app/' . $destinationDir));
         }
 
         $this->command->info("\nMedia seeding started!");
@@ -40,9 +47,7 @@ class MediaSeeder extends Seeder
                 $genderFolder = $user->gender === 'male' ? 'male' : 'female';
                 $sourcePath = storage_path(self::SOURCE_IMAGE_PATH . '/' . $genderFolder);
 
-                $images = collect(scandir($sourcePath))
-                    ->filter(fn($file) => in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']))
-                    ->values();
+                $images = collect(scandir($sourcePath))->filter(fn($file) => in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png']))->values();
 
                 if ($images->isEmpty()) {
                     $progressBar->advance();

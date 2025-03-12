@@ -1,6 +1,6 @@
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
     <div class="sidebar-brand">
-        <img src="/dist/assets/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image opacity-75 shadow" />
+        <img src="/dist/assets/img/logo.svg" alt="Dooshalah" class="brand-image opacity-75 shadow" />
         <a href="{{ url('/') }}" class="brand-link">
             <span class="brand-text font-weight-light">My App</span>
         </a>

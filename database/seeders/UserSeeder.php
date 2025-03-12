@@ -12,52 +12,30 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\Console\Helper\ProgressBar;
 
-/**
- * Seeder for populating the users table with sample data.
- *
- * This seeder creates 1000 random users plus 2 predefined users with roles (normal, admin, super_admin).
- *
- * @category Database
- * @package  Seeders
- */
 class UserSeeder extends Seeder
 {
-    /**
-     * List of Middle Eastern countries for higher probability in born_country.
-     *
-     * @var array<string>
-     */
     private const MIDDLE_EAST_COUNTRIES = [
         'Iran', 'Iraq', 'Saudi Arabia', 'Oman', 'Bahrain', 'Qatar',
         'Kuwait', 'United Arab Emirates', 'Yemen', 'Egypt', 'Jordan',
         'Syria', 'Lebanon', 'Palestine',
     ];
 
-    /**
-     * Run the database seeds.
-     *
-     * Creates 1000 random users plus 2 predefined users with roles and displays a progress bar.
-     *
-     * @return void
-     */
     public function run(): void
     {
         $faker = Faker::create();
-
-        // Cache all non-banned countries once for performance
         $countries = Country::where('access_level', '!=', 'banned')->pluck('id', 'name')->toArray();
         $middleEastCountryIds = array_filter($countries, fn($name) => in_array($name, self::MIDDLE_EAST_COUNTRIES), ARRAY_FILTER_USE_KEY);
 
-        // Create progress bar (1000 random + 2 predefined = 1002)
         $bar = new ProgressBar($this->command->getOutput(), 1002);
         $bar->start();
 
-        // Define maximum numbers for SuperAdmin and Admin
         $maxSuperAdmins = 2;
         $maxAdmins = 5;
         $superAdminCount = 0;
         $adminCount = 0;
+        $usersData = [];
 
+        // کاربران تصادفی
         for ($i = 0; $i < 1000; $i++) {
             $gender = $faker->randomElement([Gender::Male->value, Gender::Female->value]);
             $firstName = $gender === Gender::Male->value ? $faker->firstNameMale : $faker->firstNameFemale;
@@ -71,19 +49,12 @@ class UserSeeder extends Seeder
                 UserStatus::Blocked->value
             ]);
             $email = $faker->unique()->safeEmail;
-            $fatherName = $gender === Gender::Male->value ? $faker->firstNameMale : $faker->firstNameFemale;
-            $motherName = $faker->firstNameFemale;
-
-            $bornCountryId = $faker->boolean(70)
-                ? $faker->randomElement($middleEastCountryIds)
-                : $faker->randomElement($countries);
-            $livingCountryId = $faker->randomElement($countries);
 
             $role = $superAdminCount < $maxSuperAdmins
                 ? UserRole::SuperAdmin->value
                 : ($adminCount < $maxAdmins ? UserRole::Admin->value : UserRole::Normal->value);
 
-            $user = User::create([
+            $usersData[] = [
                 'first_name' => $firstName,
                 'middle_name' => $faker->firstName(),
                 'last_name' => $lastName,
@@ -95,11 +66,13 @@ class UserSeeder extends Seeder
                 'password' => Hash::make($firstName . '@1234'),
                 'role' => $role,
                 'status' => $status,
-                'father_name' => $fatherName,
-                'mother_name' => $motherName,
-                'born_country' => $bornCountryId,
-                'living_country' => $livingCountryId,
-            ]);
+                'father_name' => $gender === Gender::Male->value ? $faker->firstNameMale : $faker->firstNameFemale,
+                'mother_name' => $faker->firstNameFemale,
+                'born_country' => $faker->boolean(70) ? $faker->randomElement($middleEastCountryIds) : $faker->randomElement($countries),
+                'living_country' => $faker->randomElement($countries),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
 
             if ($role === UserRole::SuperAdmin->value) $superAdminCount++;
             elseif ($role === UserRole::Admin->value) $adminCount++;
@@ -107,8 +80,8 @@ class UserSeeder extends Seeder
             $bar->advance();
         }
 
-        // Predefined user: Reza
-        User::create([
+        // کاربر ثابت: Reza
+        $usersData[] = [
             'first_name' => 'Reza',
             'middle_name' => 'BA',
             'last_name' => 'Bagheri',
@@ -124,11 +97,13 @@ class UserSeeder extends Seeder
             'status' => UserStatus::Active->value,
             'born_country' => $countries['Iran'] ?? null,
             'living_country' => $countries['Armenia'] ?? null,
-        ]);
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
         $bar->advance();
 
-        // Predefined user: Ramsin
-        User::create([
+        // کاربر ثابت: Ramsin
+        $usersData[] = [
             'first_name' => 'Ramsin',
             'middle_name' => 'SA',
             'last_name' => 'Savra',
@@ -144,8 +119,16 @@ class UserSeeder extends Seeder
             'status' => UserStatus::Active->value,
             'born_country' => $countries['Iran'] ?? null,
             'living_country' => $countries['United States'] ?? null,
-        ]);
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
         $bar->advance();
+
+        // درج همه‌ی کاربران به صورت یکجا
+        //User::insert($usersData);
+        foreach (array_chunk($usersData, 100) as $chunk) {
+            User::insert($chunk);
+        }
 
         $bar->finish();
         $this->command->info("\nUsers seeding completed!");

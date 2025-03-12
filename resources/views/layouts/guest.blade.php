@@ -6,7 +6,7 @@
     <div class="login-box">
         <div class="card card-outline card-primary">
             <div class="card-header text-center">
-                <a href="{{ url('/') }}" class="h1"><b>My</b>App</a>
+                <a href="{{ url('/') }}" class="h1"><b>Dooshallah</a>
             </div>
             <div class="card-body">
                 @yield('guest-content')
