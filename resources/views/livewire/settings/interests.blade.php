@@ -23,7 +23,12 @@ new class extends Component {
 
         $userAnswers = UserAnswer::where('user_id', Auth::id())->get()->pluck('answer', 'question_id')->toArray();
         foreach ($userAnswers as $questionId => $answer) {
-            $decodedAnswer = json_decode($answer, true);
+            if (is_string($answer)) {
+                $decodedAnswer = json_decode($answer, true);
+            } else {
+                $decodedAnswer = $answer;
+            }
+
             $question = Question::find($questionId);
             if ($question && $question->answer_type === 'multiple' && !is_array($decodedAnswer)) {
                 $this->answers[$questionId] = [$decodedAnswer];

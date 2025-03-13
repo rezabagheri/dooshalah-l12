@@ -27,7 +27,6 @@ class UserAnswerSeeder extends Seeder
         $progressBar = new ProgressBar($output, $users->count() * $questions->count());
         $progressBar->start();
 
-        // آرایه برای ذخیره همه‌ی رکوردها
         $answers = [];
 
         \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
@@ -51,9 +50,6 @@ class UserAnswerSeeder extends Seeder
                 }
             }
 
-            // درج همه‌ی رکوردها به صورت یکجا
-            //UserAnswer::insert($answers);
-            // به جای UserAnswer::insert($answers);
             foreach (array_chunk($answers, 1000) as $chunk) {
                 UserAnswer::insert($chunk);
             }
@@ -66,38 +62,25 @@ class UserAnswerSeeder extends Seeder
 
     private function generateAnswer(Question $question): string
     {
-        switch ($question->answer_type) {
-            case 'string':
-                return json_encode(
-                    match ($question->search_label) {
-                        'Father Name' => fake()->firstName('male') . ' ' . fake()->lastName(),
-                        'Mother Name' => fake()->firstName('female') . ' ' . fake()->lastName(),
-                        default => fake()->sentence(),
-                    },
-                );
-            case 'number':
-                return json_encode(
-                    match ($question->search_label) {
-                        'Sibling' => fake()->numberBetween(0, 6),
-                        'Height' => fake()->numberBetween(150, 200),
-                        default => fake()->numberBetween(1, 100),
-                    },
-                );
-            case 'boolean':
-                return json_encode(fake()->boolean() ? '1' : '0');
-            case 'single':
-                return json_encode($question->options->isNotEmpty() ? $question->options->random()->option_value : 'N/A');
-            case 'multiple':
-                return json_encode(
-                    $question->options->isNotEmpty()
-                        ? $question->options
-                            ->random(rand(1, min(3, $question->options->count())))
-                            ->pluck('option_value')
-                            ->toArray()
-                        : ['N/A'],
-                );
-            default:
-                return json_encode(null);
-        }
+        $answer = match ($question->answer_type) {
+            'string' => match ($question->search_label) {
+                'Father Name' => fake()->firstName('male') . ' ' . fake()->lastName(),
+                'Mother Name' => fake()->firstName('female') . ' ' . fake()->lastName(),
+                default => fake()->sentence(),
+            },
+            'number' => match ($question->search_label) {
+                'Sibling' => fake()->numberBetween(0, 6),
+                'Height' => fake()->numberBetween(150, 200),
+                default => fake()->numberBetween(1, 100),
+            },
+            'boolean' => fake()->boolean() ? '1' : '0',
+            'single' => $question->options->isNotEmpty() ? $question->options->random()->option_value : 'N/A',
+            'multiple' => $question->options->isNotEmpty()
+                ? $question->options->random(rand(1, min(3, $question->options->count())))->pluck('option_value')->toArray()
+                : ['N/A'],
+            default => null,
+        };
+
+        return json_encode($answer);
     }
 }
