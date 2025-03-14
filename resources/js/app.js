@@ -1,4 +1,3 @@
-// resources/js/app.js
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'admin-lte/dist/js/adminlte';
 import { requestNotificationPermission } from './firebase.js';
@@ -11,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Bootstrap and AdminLTE loaded');
     const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
     dropdownElementList.forEach(dropdown => new window.bootstrap.Dropdown(dropdown));
+
+    // درخواست خودکار نوتیفیکیشن بعد از لود صفحه
+    initializeFirebase(); // اینجا فراخوانی می‌شه
 });
 
 document.addEventListener('livewire:init', () => {

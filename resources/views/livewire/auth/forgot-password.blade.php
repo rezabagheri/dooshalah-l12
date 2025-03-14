@@ -3,48 +3,37 @@
 use Illuminate\Support\Facades\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Illuminate\Contracts\View\View;
 
 new #[Layout('components.layouts.auth')] class extends Component {
     public string $email = '';
+    public string $bodyClass = 'login-page bg-body-secondary';
 
-    /**
-     * Send a password reset link to the provided email address.
-     */
     public function sendPasswordResetLink(): void
     {
         $this->validate([
             'email' => ['required', 'string', 'email'],
         ]);
 
-        Password::sendResetLink($this->only('email'));
+        $status = Password::sendResetLink($this->only('email'));
 
-        session()->flash('status', __('A reset link will be sent if the account exists.'));
+        if ($status === Password::RESET_LINK_SENT) {
+            session()->flash('status', __('A reset link will be sent if the account exists.'));
+        } else {
+            $this->addError('email', __($status));
+        }
     }
-}; ?>
 
-<div class="flex flex-col gap-6">
-    <x-auth-header title="Forgot password" description="Enter your email to receive a password reset link" />
+    public function toggleDarkMode(): void
+    {
+        $this->bodyClass = $this->bodyClass === 'login-page bg-body-secondary' ? 'login-page dark-mode' : 'login-page bg-body-secondary';
+        $this->dispatch('updateBodyClass', $this->bodyClass);
+    }
 
-    <!-- Session Status -->
-    <x-auth-session-status class="text-center" :status="session('status')" />
-
-    <form wire:submit="sendPasswordResetLink" class="flex flex-col gap-6">
-        <!-- Email Address -->
-        <flux:input
-            wire:model="email"
-            label="{{ __('Email Address') }}"
-            type="email"
-            name="email"
-            required
-            autofocus
-            placeholder="email@example.com"
-        />
-
-        <flux:button variant="primary" type="submit" class="w-full">{{ __('Email password reset link') }}</flux:button>
-    </form>
-
-    <div class="space-x-1 text-center text-sm text-zinc-400">
-        Or, return to
-        <x-text-link href="{{ route('login') }}">log in</x-text-link>
-    </div>
-</div>
+    public function render(): View
+    {
+        return view('auth.forgot-password')->layout('components.layouts.auth', [
+            'bodyClass' => $this->bodyClass,
+        ]);
+    }
+};

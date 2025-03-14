@@ -55,7 +55,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = ['first_name', 'middle_name', 'last_name', 'display_name', 'gender', 'birth_date', 'email', 'phone_number', 'father_name', 'mother_name', 'born_country', 'living_country', 'email_verified_at', 'password', 'role', 'status', 'locale'];
+    protected $fillable = ['first_name', 'middle_name', 'last_name', 'display_name', 'gender', 'birth_date', 'email', 'phone_number', 'father_name', 'mother_name', 'born_country', 'living_country', 'email_verified_at', 'password', 'role', 'status', 'locale', 'fcm_token'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -145,6 +145,17 @@ class User extends Authenticatable
     public function photoAlbum()
     {
         return $this->approvedMedia()->where('is_profile', false)->orderBy('order')->get();
+    }
+
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(ChatMessage::class, 'sender_id');
+    }
+
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(ChatMessage::class, 'receiver_id');
     }
 
     /**

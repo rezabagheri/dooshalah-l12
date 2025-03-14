@@ -13,73 +13,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-async function getSanctumToken() {
-    try {
-        const response = await fetch('/api/get-token', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            },
-        });
-        const data = await response.json();
-        return data.token;
-    } catch (error) {
-        console.error('Error fetching Sanctum token:', error);
-        return null;
-    }
-}
-
-export async function requestNotificationPermission() {
-    try {
-        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-        console.log('Service Worker registered:', registration);
-
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            console.log('Notification permission granted.');
-            try {
-                const currentToken = await getToken(messaging, {
-                    vapidKey: 'BDKtRtHzS63nUM5JPlKfU6BfcdrVYItt5_6RpGGor216yhsNFz1hwQ0a8RJdxmoOMdAgkZXkrEFjXV4MbTIa1Ag',
-                    serviceWorkerRegistration: registration
-                });
-                if (currentToken) {
-                    console.log('FCM Token:', currentToken);
-                    const token = await getSanctumToken();
-                    if (token) {
-                        fetch('/api/save-fcm-token', {
+export function initializeFirebase() {
+    if ('Notification' in window && navigator.serviceWorker) {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                getToken(messaging, {
+                    vapidKey: 'BDKtRtHzS63nUM5JPlKfU6BfcdrVYItt5_6RpGGor216yhsNFz1hwQ0a8RJdxmoOMdAgkZXkrEFjXV4MbTIa1Ag'
+                }).then((currentToken) => {
+                    if (currentToken) {
+                        fetch('/save-fcm-token', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'Authorization': `Bearer ${token}`,
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             },
-                            body: JSON.stringify({ token: currentToken }),
-                        }).then(response => response.json())
-                          .then(data => console.log('FCM Token saved:', data))
-                          .catch(error => console.error('Error saving FCM token:', error));
+                            body: JSON.stringify({ fcm_token: currentToken })
+                        }).then(response => response.json()).then(data => {
+                            console.log('FCM Token saved:', data);
+                        }).catch(err => {
+                            console.error('Error saving FCM token:', err);
+                        });
                     }
-                } else {
-                    console.log('No registration token available.');
-                }
-            } catch (err) {
-                console.error('Failed to get token:', err);
-                console.error('Error name:', err.name);
-                console.error('Error message:', err.message);
-                console.error('Error code:', err.code);
-            }
-
-            onMessage(messaging, (payload) => {
-                console.log('Message received:', payload);
-                const notification = new Notification(payload.notification.title, {
-                    body: payload.notification.body,
+                }).catch((err) => {
+                    console.error('Error getting FCM token:', err);
                 });
-            });
-        } else {
-            console.log('Notification permission denied.');
-        }
-    } catch (err) {
-        console.error('Service Worker registration failed:', err);
+
+                onMessage(messaging, (payload) => {
+                    toastr.success(payload.notification.body);
+                    Livewire.dispatch('messageReceived');
+                });
+            }
+        }).catch(err => {
+            console.error('Notification permission denied:', err);
+        });
     }
 }

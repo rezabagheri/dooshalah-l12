@@ -72,9 +72,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/payments', \App\Livewire\PaymentHistory::class)->name('payments.history');
     Route::get('/notifications', \App\Livewire\NotificationsPage::class)->name('notifications');
 
-    // Online chat
-    Route::get('/chat', \App\Livewire\ChatIndex::class)->name('chat.index');
-    Route::get('/chat/{user}', \App\Livewire\ChatComponent::class)->name('chat.show');
+
 });
 
 

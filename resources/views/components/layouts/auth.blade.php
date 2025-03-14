@@ -2,7 +2,7 @@
     <div class="login-box">
         <div class="card card-outline card-primary">
             <div class="card-header text-center">
-                <a href="{{ url('/') }}" class="h1"><b>My</b>App</a>
+                <a href="{{ route('login') }}" class="h1"><b>{{ config('app.name') }}</b></a>
             </div>
             <div class="card-body">
                 {{ $slot }}
