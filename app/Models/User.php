@@ -20,7 +20,8 @@ use Laravel\Sanctum\HasApiTokens;
  *
  * Represents a user in the application with authentication and role-based features.
  *
- * @property int $id
+ * @package App\Models
+ * @property int $id The unique identifier for the user.
  * @property string $first_name The user's first name.
  * @property string|null $middle_name The user's middle name (optional).
  * @property string $last_name The user's last name.
@@ -38,13 +39,30 @@ use Laravel\Sanctum\HasApiTokens;
  * @property UserRole $role The user's role (normal, admin, super_admin).
  * @property UserStatus $status The user's status (active, pending, suspended, blocked).
  * @property string|null $locale The user's preferred language (e.g., "en", "fa").
+ * @property string|null $fcm_token The user's FCM token for notifications.
+ * @property \Carbon\Carbon|null $last_seen Timestamp of the user's last activity.
  * @property string|null $remember_token Token for remembering user login.
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon $created_at Timestamp when the user was created.
+ * @property \Carbon\Carbon $updated_at Timestamp when the user was last updated.
  * @property \Carbon\Carbon|null $deleted_at Timestamp of soft deletion.
  * @property-read Country|null $bornCountry The country where the user was born.
  * @property-read Country|null $livingCountry The country where the user currently resides.
  * @property-read \Illuminate\Database\Eloquent\Collection|UserMedia[] $media The user's media files.
+ * @property-read \Illuminate\Database\Eloquent\Collection|UserMedia[] $approvedMedia The user's approved media files.
+ * @property-read \Illuminate\Database\Eloquent\Collection|UserMedia[] $unapprovedMedia The user's unapproved media files.
+ * @property-read UserMedia|null $profilePicture The user's profile picture.
+ * @property-read \Illuminate\Database\Eloquent\Collection|UserMedia[] $photoAlbum The user's photo album.
+ * @property-read \Illuminate\Database\Eloquent\Collection|ChatMessage[] $sentMessages Messages sent by the user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|ChatMessage[] $receivedMessages Messages received by the user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|Subscription[] $subscriptions The user's subscriptions.
+ * @property-read \Illuminate\Database\Eloquent\Collection|Friendship[] $friendships Friendships initiated by the user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|Friendship[] $friendRequestsReceived Friend requests received by the user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|Block[] $blocks Users blocked by this user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|Block[] $blockedBy Users who blocked this user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|Report[] $reports Reports submitted by this user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|Report[] $reportedBy Reports against this user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|Friendship[] $friends Accepted friendships of the user.
+ * @property-read \Illuminate\Database\Eloquent\Collection|UserAnswer[] $userAnswers Answers provided by the user.
  */
 class User extends Authenticatable
 {
@@ -55,7 +73,11 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = ['first_name', 'middle_name', 'last_name', 'display_name', 'gender', 'birth_date', 'email', 'phone_number', 'father_name', 'mother_name', 'born_country', 'living_country', 'email_verified_at', 'password', 'role', 'status', 'locale', 'fcm_token'];
+    protected $fillable = [
+        'first_name', 'middle_name', 'last_name', 'display_name', 'gender', 'birth_date',
+        'email', 'phone_number', 'father_name', 'mother_name', 'born_country', 'living_country',
+        'email_verified_at', 'password', 'role', 'status', 'locale', 'fcm_token', 'last_seen'
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -76,6 +98,7 @@ class User extends Authenticatable
         'birth_date' => 'date',
         'email_verified_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'last_seen' => 'datetime',
     ];
 
     /**
@@ -117,6 +140,7 @@ class User extends Authenticatable
     {
         return $this->media()->where('is_approved', true);
     }
+
     /**
      * Get the user's unapproved media files.
      *
@@ -147,19 +171,118 @@ class User extends Authenticatable
         return $this->approvedMedia()->where('is_profile', false)->orderBy('order')->get();
     }
 
-
+    /**
+     * Get the messages sent by the user.
+     *
+     * @return HasMany
+     */
     public function sentMessages(): HasMany
     {
         return $this->hasMany(ChatMessage::class, 'sender_id');
     }
 
+    /**
+     * Get the messages received by the user.
+     *
+     * @return HasMany
+     */
     public function receivedMessages(): HasMany
     {
         return $this->hasMany(ChatMessage::class, 'receiver_id');
     }
 
     /**
-     * Scope to filter users with unapproved media.
+     * Get the user's subscriptions.
+     *
+     * @return HasMany
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get the friendships initiated by the user.
+     *
+     * @return HasMany
+     */
+    public function friendships(): HasMany
+    {
+        return $this->hasMany(Friendship::class, 'user_id');
+    }
+
+    /**
+     * Get the friend requests received by the user.
+     *
+     * @return HasMany
+     */
+    public function friendRequestsReceived(): HasMany
+    {
+        return $this->hasMany(Friendship::class, 'target_id');
+    }
+
+    /**
+     * Get the users blocked by this user.
+     *
+     * @return HasMany
+     */
+    public function blocks(): HasMany
+    {
+        return $this->hasMany(Block::class, 'user_id');
+    }
+
+    /**
+     * Get the users who blocked this user.
+     *
+     * @return HasMany
+     */
+    public function blockedBy(): HasMany
+    {
+        return $this->hasMany(Block::class, 'target_id');
+    }
+
+    /**
+     * Get the reports submitted by this user.
+     *
+     * @return HasMany
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'user_id');
+    }
+
+    /**
+     * Get the reports against this user.
+     *
+     * @return HasMany
+     */
+    public function reportedBy(): HasMany
+    {
+        return $this->hasMany(Report::class, 'target_id');
+    }
+
+    /**
+     * Get the accepted friendships of the user.
+     *
+     * @return HasMany
+     */
+    public function friends(): HasMany
+    {
+        return $this->friendships()->where('status', 'accepted')->with('target');
+    }
+
+    /**
+     * Get the answers provided by the user.
+     *
+     * @return HasMany
+     */
+    public function userAnswers(): HasMany
+    {
+        return $this->hasMany(UserAnswer::class, 'user_id');
+    }
+
+    /**
+     * Scope a query to filter users with unapproved media.
      *
      * @param Builder $query The query builder instance.
      * @return Builder The modified query builder instance.
@@ -172,7 +295,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope to filter SuperAdmin users.
+     * Scope a query to filter SuperAdmin users.
      *
      * @param Builder $query The query builder instance.
      * @return Builder The modified query builder instance.
@@ -183,7 +306,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope to filter Admin users.
+     * Scope a query to filter Admin users.
      *
      * @param Builder $query The query builder instance.
      * @return Builder The modified query builder instance.
@@ -194,7 +317,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope to filter Normal users.
+     * Scope a query to filter Normal users.
      *
      * @param Builder $query The query builder instance.
      * @return Builder The modified query builder instance.
@@ -205,7 +328,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope to filter active users.
+     * Scope a query to filter active users.
      *
      * @param Builder $query The query builder instance.
      * @return Builder The modified query builder instance.
@@ -216,7 +339,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope to filter pending users.
+     * Scope a query to filter pending users.
      *
      * @param Builder $query The query builder instance.
      * @return Builder The modified query builder instance.
@@ -227,7 +350,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope to filter suspended users.
+     * Scope a query to filter suspended users.
      *
      * @param Builder $query The query builder instance.
      * @return Builder The modified query builder instance.
@@ -238,7 +361,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Scope to filter blocked users.
+     * Scope a query to filter blocked users.
      *
      * @param Builder $query The query builder instance.
      * @return Builder The modified query builder instance.
@@ -251,7 +374,7 @@ class User extends Authenticatable
     /**
      * Check if the user has the SuperAdmin role.
      *
-     * @return bool
+     * @return bool True if the user is a SuperAdmin, false otherwise.
      */
     public function isSuperAdmin(): bool
     {
@@ -261,7 +384,7 @@ class User extends Authenticatable
     /**
      * Check if the user has the Admin role.
      *
-     * @return bool
+     * @return bool True if the user is an Admin, false otherwise.
      */
     public function isAdmin(): bool
     {
@@ -271,7 +394,7 @@ class User extends Authenticatable
     /**
      * Check if the user has the Normal role.
      *
-     * @return bool
+     * @return bool True if the user is a Normal user, false otherwise.
      */
     public function isNormal(): bool
     {
@@ -281,7 +404,7 @@ class User extends Authenticatable
     /**
      * Check if the user account is active.
      *
-     * @return bool
+     * @return bool True if the user is active, false otherwise.
      */
     public function isActive(): bool
     {
@@ -291,7 +414,7 @@ class User extends Authenticatable
     /**
      * Check if the user account is pending.
      *
-     * @return bool
+     * @return bool True if the user is pending, false otherwise.
      */
     public function isPending(): bool
     {
@@ -301,7 +424,7 @@ class User extends Authenticatable
     /**
      * Check if the user account is suspended.
      *
-     * @return bool
+     * @return bool True if the user is suspended, false otherwise.
      */
     public function isSuspended(): bool
     {
@@ -311,63 +434,10 @@ class User extends Authenticatable
     /**
      * Check if the user account is blocked.
      *
-     * @return bool
+     * @return bool True if the user is blocked, false otherwise.
      */
     public function isBlocked(): bool
     {
         return $this->status === UserStatus::Blocked;
-    }
-
-    public function subscriptions()
-    {
-        return $this->hasMany(Subscription::class);
-    }
-
-
-    public function fcmTokens()
-    {
-        return $this->hasMany(FcmToken::class);
-    }
-
-
-    public function friendships(): HasMany
-    {
-        return $this->hasMany(Friendship::class, 'user_id');
-    }
-
-    public function friendRequestsReceived(): HasMany
-    {
-        return $this->hasMany(Friendship::class, 'target_id');
-    }
-
-    public function blocks(): HasMany
-    {
-        return $this->hasMany(Block::class, 'user_id');
-    }
-
-    public function blockedBy(): HasMany
-    {
-        return $this->hasMany(Block::class, 'target_id');
-    }
-
-    public function reports(): HasMany
-    {
-        return $this->hasMany(Report::class, 'user_id');
-    }
-
-    public function reportedBy(): HasMany
-    {
-        return $this->hasMany(Report::class, 'target_id');
-    }
-
-
-    public function friends()
-    {
-        return $this->friendships()->where('status', 'accepted')->with('target');
-    }
-
-    public function userAnswers(): HasMany
-    {
-        return $this->hasMany(UserAnswer::class, 'user_id');
     }
 }

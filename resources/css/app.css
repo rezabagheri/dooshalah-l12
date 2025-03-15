@@ -1,6 +1,7 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.scss';
 @import 'admin-lte/dist/css/adminlte.css';
+@import './chat.css';
 
 .ribbon-wrapper {
     position: absolute;

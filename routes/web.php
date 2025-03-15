@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\PaymentController;
+use App\Livewire\Chat;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Livewire\Volt\Volt;
-
-
 
 Route::get('/test-firebase', [App\Http\Controllers\TestFirebaseController::class, 'testNotification']);
 
@@ -39,7 +39,6 @@ Route::middleware(['auth'])->group(function () {
     //Route::get('/messages/compose', \App\Livewire\MessagesCompose::class)->name('messages.compose');
     //Volt::route('/messages/read/{id}', 'messages-read')->name('messages.read');
 
-
     Volt::route('/messages', 'messages-inbox')->name('messages.inbox');
 
     Volt::route('/messages/sent', 'messages-sent')->name('messages.sent');
@@ -54,8 +53,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['auth'])->group(function () {
         Route::get('/friends', \App\Livewire\FriendsIndex::class)->name('friends.index');
         Route::get('/friends/suggestions', \App\Livewire\FriendsIndex::class)->name('friends.suggestions');
-        Route::get('/friends/my-friends', \App\Livewire\FriendsIndex::class)
-            ->name('friends.my-friends');
+        Route::get('/friends/my-friends', \App\Livewire\FriendsIndex::class)->name('friends.my-friends');
         Route::get('/friends/pending', \App\Livewire\FriendsIndex::class)->name('friends.pending');
         Route::get('/friends/received', \App\Livewire\FriendsIndex::class)->name('friends.received');
         Route::get('/friends/blocked', \App\Livewire\FriendsIndex::class)->name('friends.blocked');
@@ -72,14 +70,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/payments', \App\Livewire\PaymentHistory::class)->name('payments.history');
     Route::get('/notifications', \App\Livewire\NotificationsPage::class)->name('notifications');
 
-
+    //Chat Route
+    Route::post('/chat/save-fcm-token', [ChatController::class, 'saveFcmToken'])->name('chat.save-fcm-token');
+    Route::get('/chat', \App\Livewire\Chat::class)->name('chat');
 });
 
 
 
-Route::middleware('auth')->get('/api/get-token', function () {
-    $user = auth()->user();
-    $token = $user->createToken('api-token')->plainTextToken;
-    return response()->json(['token' => $token]);
-});
+
+
 require __DIR__ . '/auth.php';

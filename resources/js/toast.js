@@ -1,4 +1,3 @@
-// resources/js/toast.js
 export function showToast(message, type) {
     const toast = new window.bootstrap.Toast(document.getElementById('livewire-toast'));
     document.querySelector('#livewire-toast .toast-body').textContent = message;
@@ -84,5 +83,9 @@ export function initializeToastListeners() {
 
     Livewire.on('error', (message) => {
         showToast(message, 'danger');
+    });
+
+    Livewire.on('messageReceived', () => {
+        // می‌تونیم اینجا چیزی اضافه کنیم، ولی فعلاً خالی می‌ذاریم چون تو app.js نشون داده می‌شه
     });
 }
