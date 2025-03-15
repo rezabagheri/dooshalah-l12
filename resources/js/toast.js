@@ -86,6 +86,5 @@ export function initializeToastListeners() {
     });
 
     Livewire.on('messageReceived', () => {
-        // می‌تونیم اینجا چیزی اضافه کنیم، ولی فعلاً خالی می‌ذاریم چون تو app.js نشون داده می‌شه
     });
 }

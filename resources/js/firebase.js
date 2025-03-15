@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
-// تنظیمات فایربیس از پروژه‌ات
 const firebaseConfig = {
     apiKey: "AIzaSyAQmSPTFuocYjUuT-5tBr8ddn_lLEBc80M",
     authDomain: "dooshalahchat.firebaseapp.com",
@@ -11,14 +10,9 @@ const firebaseConfig = {
     appId: "1:50335252342:web:48a6b302dbf58aef7e4457"
 };
 
-// راه‌اندازی فایربیس
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-/**
- * درخواست اجازه برای نوتیفیکیشن و گرفتن توکن FCM
- * @returns {Promise<string|null>} توکن FCM یا null در صورت خطا
- */
 export async function requestNotificationPermission() {
     if (!('Notification' in window) || !navigator.serviceWorker) {
         console.error('Notifications or Service Worker not supported.');
@@ -33,11 +27,18 @@ export async function requestNotificationPermission() {
                 vapidKey: 'BDKtRtHzS63nUM5JPlKfU6BfcdrVYItt5_6RpGGor216yhsNFz1hwQ0a8RJdxmoOMdAgkZXkrEFjXV4MbTIa1Ag'
             });
             if (token) {
+                // چک کردن وجود csrf-token
+                const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
+                if (!csrfTokenElement) {
+                    console.error('CSRF token not found. Skipping token save.');
+                    return token; // توکن رو برگردون بدون ذخیره
+                }
+                const csrfToken = csrfTokenElement.content;
                 const response = await fetch('/chat/save-fcm-token', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-CSRF-TOKEN': csrfToken,
                     },
                     body: JSON.stringify({ fcm_token: token }),
                 });
@@ -47,17 +48,14 @@ export async function requestNotificationPermission() {
             }
         } else {
             console.log('Notification permission denied.');
+            return null;
         }
     } catch (error) {
         console.error('Error getting FCM token:', error);
+        return null;
     }
-    return null;
 }
 
-/**
- * دریافت پیام‌های foreground از فایربیس
- * @param {Function} callback تابعی که پیام دریافت‌شده را مدیریت می‌کند
- */
 export function onForegroundMessage(callback) {
     onMessage(messaging, (payload) => {
         console.log('Foreground message received:', payload);

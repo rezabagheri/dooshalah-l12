@@ -32,7 +32,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         \Log::info('Login successful', ['email' => $this->email]);
         Session::regenerate();
-        $this->redirect('/dashboard', navigate: true);
+        $this->redirect('/dashboard'); // ریدایرکت با متد Volt
     }
 
     public function toggleDarkMode(): void
