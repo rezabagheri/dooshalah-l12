@@ -8,20 +8,9 @@ use App\Models\User;
 use App\Services\FirebaseService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
-/**
- * Class Chat
- *
- * A Livewire component to manage chat functionality between users with polling.
- *
- * @package App\Livewire
- * @property int|null $selectedUserId The ID of the user currently selected for chatting.
- * @property string $message The message content to be sent.
- * @property array $messages The list of messages in the current conversation.
- * @property array $users The list of users available for chatting.
- * @property bool $isTyping Indicates if the selected user is typing.
- */
 class Chat extends Component
 {
     public $selectedUserId = null;
@@ -32,15 +21,11 @@ class Chat extends Component
 
     protected $firebaseService;
 
-    public function __construct($id = null)
-    {
-        parent::__construct($id);
-        $this->firebaseService = app(FirebaseService::class);
-    }
-
     public function mount(): void
     {
+        $this->firebaseService = app(FirebaseService::class);
         $this->loadUsers();
+        $this->updateDeliveredStatus(); // وضعیت Delivered رو موقع لود چک می‌کنیم
     }
 
     public function loadUsers(): void
@@ -48,7 +33,18 @@ class Chat extends Component
         $currentUser = Auth::user();
 
         $friends = $currentUser->friends()->pluck('target_id');
-        $chatPartners = ChatMessage::where('sender_id', $currentUser->id)->orWhere('receiver_id', $currentUser->id)->pluck('receiver_id', 'sender_id')->unique();
+        $chatPartners = ChatMessage::where(function ($query) use ($currentUser) {
+            $query->where('sender_id', $currentUser->id)
+                  ->orWhere('receiver_id', $currentUser->id);
+        })
+        ->pluck('sender_id')
+        ->merge(ChatMessage::where(function ($query) use ($currentUser) {
+            $query->where('sender_id', $currentUser->id)
+                  ->orWhere('receiver_id', $currentUser->id);
+        })
+        ->pluck('receiver_id'))
+        ->unique();
+
         $blocked = $currentUser->blocks()->pluck('target_id');
 
         $this->users = User::whereIn('id', $friends->merge($chatPartners))
@@ -77,6 +73,7 @@ class Chat extends Component
     {
         if ($this->selectedUserId) {
             $this->messages = ChatMessage::between(Auth::id(), $this->selectedUserId)->orderBy('created_at', 'asc')->get()->toArray();
+            $this->updateDeliveredStatus(); // هر بار که پیام‌ها لود می‌شه، Delivered رو آپدیت می‌کنیم
         }
     }
 
@@ -115,8 +112,7 @@ class Chat extends Component
     public function typing(): void
     {
         if ($this->selectedUserId) {
-            // به جای dispatch، تو کش می‌ذاریم
-            Cache::put("typing_" . Auth::id() . "_to_{$this->selectedUserId}", true, 3); // 3 ثانیه
+            Cache::put("typing_" . Auth::id() . "_to_{$this->selectedUserId}", true, 3);
         }
     }
 
@@ -145,9 +141,22 @@ class Chat extends Component
                 ]);
                 $this->loadMessages();
             } catch (\Exception $e) {
-                // Handle notification failure
+                Log::error('Failed to send Firebase notification', ['error' => $e->getMessage()]);
             }
+        } else {
+            Log::info('No FCM token for receiver or receiver not found', ['receiver_id' => $chatMessage->receiver_id]);
         }
+    }
+
+    private function updateDeliveredStatus(): void
+    {
+        // پیام‌هایی که برای من فرستاده شدن و هنوز Sent هستن رو به Delivered تغییر بده
+        ChatMessage::where('receiver_id', Auth::id())
+            ->where('status', ChatStatus::Sent)
+            ->update([
+                'status' => ChatStatus::Delivered,
+                'delivered_at' => now(),
+            ]);
     }
 
     public function render()
