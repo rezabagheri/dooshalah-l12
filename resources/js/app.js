@@ -31,6 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Failed to request notification permission:', error);
                     showToast('Unable to enable notifications. Check your browser settings and refresh the page.', 'warning');
                 });
+            } else if (Notification.permission === 'granted') {
+                // اگه از قبل اجازه داده شده، توکن رو بگیر و ذخیره کن
+                requestNotificationPermission().then((token) => {
+                    if (token) {
+                        console.log('Token refreshed:', token);
+                    }
+                });
             } else {
                 console.log('Notification permission already set:', Notification.permission);
                 if (Notification.permission === 'denied') {

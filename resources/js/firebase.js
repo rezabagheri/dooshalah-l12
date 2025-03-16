@@ -1,5 +1,5 @@
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/messaging';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAQmSPTFuocYjUuT-5tBr8ddn_lLEBc80M",
@@ -10,8 +10,11 @@ const firebaseConfig = {
     appId: "1:50335252342:web:48a6b302dbf58aef7e4457"
 };
 
-const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+const messaging = firebase.messaging();
 
 export async function requestNotificationPermission() {
     if (!('Notification' in window) || !navigator.serviceWorker) {
@@ -23,15 +26,14 @@ export async function requestNotificationPermission() {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
             console.log('Notification permission granted.');
-            const token = await getToken(messaging, {
+            const token = await messaging.getToken({
                 vapidKey: 'BDKtRtHzS63nUM5JPlKfU6BfcdrVYItt5_6RpGGor216yhsNFz1hwQ0a8RJdxmoOMdAgkZXkrEFjXV4MbTIa1Ag'
             });
             if (token) {
-                // چک کردن وجود csrf-token
                 const csrfTokenElement = document.querySelector('meta[name="csrf-token"]');
                 if (!csrfTokenElement) {
                     console.error('CSRF token not found. Skipping token save.');
-                    return token; // توکن رو برگردون بدون ذخیره
+                    return token;
                 }
                 const csrfToken = csrfTokenElement.content;
                 const response = await fetch('/chat/save-fcm-token', {
@@ -57,7 +59,7 @@ export async function requestNotificationPermission() {
 }
 
 export function onForegroundMessage(callback) {
-    onMessage(messaging, (payload) => {
+    messaging.onMessage((payload) => {
         console.log('Foreground message received:', payload);
         callback(payload);
     });

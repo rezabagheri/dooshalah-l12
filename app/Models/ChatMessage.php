@@ -39,6 +39,7 @@ class ChatMessage extends Model
         'content',
         'status',
         'delivered_at',
+        'fcm_token'
     ];
 
     /**

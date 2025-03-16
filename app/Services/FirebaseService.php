@@ -5,6 +5,7 @@ namespace App\Services;
 use Google\Client;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class FirebaseService
@@ -43,11 +44,31 @@ class FirebaseService
      */
     public function __construct()
     {
-        $this->httpClient = new GuzzleClient();
-        $this->googleClient = new Client();
-        $this->googleClient->setAuthConfig(storage_path(env('FIREBASE_CREDENTIALS')));
-        $this->googleClient->addScope('https://www.googleapis.com/auth/firebase.messaging');
-        $this->projectId = env('FIREBASE_PROJECT_ID');
+        try {
+            $this->httpClient = new GuzzleClient();
+            $this->googleClient = new Client();
+            $credentialsPath = storage_path(env('FIREBASE_CREDENTIALS'));
+            Log::info('Attempting to load Firebase credentials', ['path' => $credentialsPath]);
+            if (!file_exists($credentialsPath)) {
+                Log::error('Firebase credentials file not found', ['path' => $credentialsPath]);
+                throw new \Exception('Firebase credentials file not found at: ' . $credentialsPath);
+            }
+            if (!is_readable($credentialsPath)) {
+                Log::error('Firebase credentials file not readable', ['path' => $credentialsPath]);
+                throw new \Exception('Firebase credentials file not readable at: ' . $credentialsPath);
+            }
+            $this->googleClient->setAuthConfig($credentialsPath);
+            $this->googleClient->addScope('https://www.googleapis.com/auth/firebase.messaging');
+            $this->projectId = env('FIREBASE_PROJECT_ID');
+            if (!$this->projectId) {
+                Log::error('FIREBASE_PROJECT_ID not set in .env');
+                throw new \Exception('FIREBASE_PROJECT_ID not set');
+            }
+            Log::info('FirebaseService initialized successfully', ['project_id' => $this->projectId]);
+        } catch (\Exception $e) {
+            Log::error('Failed to initialize FirebaseService', ['error' => $e->getMessage()]);
+            throw $e;
+        }
     }
 
     /**
@@ -61,27 +82,33 @@ class FirebaseService
      */
     public function sendNotification(string $to, string $title, string $body): array
     {
-        $accessToken = $this->googleClient->fetchAccessTokenWithAssertion()['access_token'];
-
-        $response = $this->httpClient->post(
-            "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send",
-            [
-                'headers' => [
-                    'Authorization' => "Bearer {$accessToken}",
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    'message' => [
-                        'token' => $to,
-                        'notification' => [
-                            'title' => $title,
-                            'body' => $body,
+        try {
+            $accessToken = $this->googleClient->fetchAccessTokenWithAssertion()['access_token'];
+            Log::info('Fetched access token for FCM', ['token' => substr($accessToken, 0, 10) . '...']);
+            $response = $this->httpClient->post(
+                "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send",
+                [
+                    'headers' => [
+                        'Authorization' => "Bearer {$accessToken}",
+                        'Content-Type' => 'application/json',
+                    ],
+                    'json' => [
+                        'message' => [
+                            'token' => $to,
+                            'notification' => [
+                                'title' => $title,
+                                'body' => $body,
+                            ],
                         ],
                     ],
-                ],
-            ]
-        );
-
-        return json_decode($response->getBody()->getContents(), true);
+                ]
+            );
+            $result = json_decode($response->getBody()->getContents(), true);
+            Log::info('Notification sent successfully', ['response' => $result]);
+            return $result;
+        } catch (GuzzleException $e) {
+            Log::error('Failed to send Firebase notification', ['error' => $e->getMessage()]);
+            throw $e;
+        }
     }
 }

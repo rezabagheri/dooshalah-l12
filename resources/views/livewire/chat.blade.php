@@ -11,7 +11,7 @@
     <!-- پیام‌ها و تایپینگ -->
     @if ($selectedUserId)
         <div class="chat-box">
-            <div wire:poll.1000ms="checkTyping">
+            <div>
                 @if ($isTyping)
                     <div class="typing-indicator">Typing...</div>
                 @endif
