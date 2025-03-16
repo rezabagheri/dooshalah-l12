@@ -133,39 +133,67 @@
     flex-grow: 1;
     overflow-y: auto;
     max-height: calc(80vh - 130px);
+    padding: 10px;
 }
 
 .message {
-    margin: 5px;
-    padding: 10px;
-    border-radius: 5px;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    max-width: 70%;
 }
 
 .message.sent {
-    background: #d1e7dd;
-    align-self: flex-end;
+    flex-direction: row-reverse; /* عکس سمت راست */
+    margin-left: auto;
 }
 
 .message.received {
-    background: #f8d7da;
-    align-self: flex-start;
+    flex-direction: row; /* عکس سمت چپ */
+    margin-right: auto;
 }
 
-.time {
-    font-size: 0.8em;
-    color: #666;
+.message-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 0 10px;
+    object-fit: cover;
 }
 
-.tick.single.grey {
-    color: grey;
+.message-content {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-.tick.double.grey {
-    color: grey;
+.message.sent .message-content {
+    background: #0084ff; /* آبی برای پیام‌های ارسالی */
+    color: #fff;
 }
 
-.tick.double.green {
-    color: green;
+.message.received .message-content {
+    background: #e9ecef; /* خاکستری روشن برای پیام‌های دریافتی */
+    color: #000;
+}
+
+.message-text {
+    word-wrap: break-word;
+}
+
+.message-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #888;
+}
+
+.message.sent .message-meta {
+    color: #ddd; /* برای خوانایی روی آبی */
 }
 
 .typing-indicator {
@@ -178,7 +206,7 @@
     display: flex;
     gap: 10px;
     margin-top: 10px;
-    position: relative; /* برای پاپ‌آپ */
+    position: relative;
 }
 
 .message-input input {
@@ -200,7 +228,7 @@
 
 .sticker-popup {
     position: absolute;
-    bottom: 50px; /* بالای message-input */
+    bottom: 50px;
     left: 0;
     width: 300px;
     max-height: 200px;
@@ -223,4 +251,84 @@
 .sticker:hover {
     background: #f0f0f0;
     border-radius: 5px;
+}
+
+
+/**/
+
+.message-input {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    position: relative;
+}
+
+.message-textarea {
+    flex-grow: 1;
+    padding: 5px;
+    resize: vertical; /* اجازه تغییر اندازه عمودی */
+    min-height: 30px; /* ارتفاع اولیه */
+    max-height: 100px; /* حداکثر ارتفاع */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow-y: auto;
+}
+
+.message-input button {
+    padding: 5px 10px;
+}
+
+
+.chat-container {
+    display: flex;
+    width: 100%;
+    max-width: 1200px; /* یا هر مقداری که برای عرض اصلی صفحه‌ت تعریف کردی */
+    margin: 0 auto; /* وسط‌چین کردن */
+}
+
+.users-list {
+    flex: 0 0 300px; /* عرض ثابت برای لیست کاربران */
+}
+
+.chat-box {
+    flex: 1; /* بخش چت عرض باقی‌مونده رو بگیره */
+    display: flex;
+    flex-direction: column;
+}
+
+.message-input {
+    display: flex;
+    align-items: center;
+    width: 100%; /* عرض کامل نسبت به پدرش (chat-box) */
+    padding: 10px; /* فاصله داخلی */
+    box-sizing: border-box; /* مطمئن بشیم padding تو عرض حساب بشه */
+}
+
+.sticker-button,
+.message-input button {
+    flex: 0 0 auto; /* دکمه‌ها اندازه ثابت داشته باشن */
+    width: 40px; /* عرض ثابت برای دکمه‌ها */
+    height: 40px; /* ارتفاع ثابت */
+    margin: 0 5px; /* فاصله بین دکمه‌ها و textarea */
+    font-size: 16px; /* اندازه فونت دکمه‌ها */
+    padding: 0; /* حذف padding داخلی */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0; /* رنگ پس‌زمینه دلخواه */
+    border: 1px solid #ccc; /* حاشیه دلخواه */
+    border-radius: 5px; /* گوشه‌های گرد */
+    cursor: pointer;
+}
+
+.message-textarea {
+    flex: 1; /* textarea عرض باقی‌مونده رو بگیره */
+    min-width: 0; /* جلوگیری از سرریز شدن */
+    height: 40px; /* ارتفاع ثابت */
+    padding: 10px; /* فاصله داخلی */
+    resize: none; /* غیرفعال کردن تغییر اندازه دستی */
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
 }

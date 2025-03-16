@@ -20,7 +20,7 @@ class Chat extends Component
     public $isTyping = false;
     public $searchQuery = '';
     public $selectedUser = null;
-    public $showStickerPopup = false; // برای نمایش/مخفی کردن پاپ‌آپ استیکر
+    public $showStickerPopup = false;
 
     protected $firebaseService;
 
@@ -98,13 +98,23 @@ class Chat extends Component
     public function loadMessages(): void
     {
         if ($this->selectedUserId) {
-            $this->messages = ChatMessage::where(function ($query) {
-                $query->where('sender_id', Auth::id())
-                      ->where('receiver_id', $this->selectedUserId);
-            })->orWhere(function ($query) {
-                $query->where('sender_id', $this->selectedUserId)
-                      ->where('receiver_id', Auth::id());
-            })->orderBy('created_at', 'asc')->get()->toArray();
+            $this->messages = ChatMessage::between(Auth::id(), $this->selectedUserId)
+                ->with(['sender.media' => function ($query) {
+                    $query->where('is_profile', true);
+                }])
+                ->orderBy('created_at', 'asc')
+                ->get()
+                ->map(function ($message) {
+                    $profilePicture = $message->sender->profilePicture();
+                    return [
+                        'sender_id' => $message->sender_id,
+                        'content' => $message->content,
+                        'status' => $message->status->value,
+                        'created_at' => $message->created_at->format('H:i'),
+                        'profile_photo_path' => $profilePicture && $profilePicture->media ? asset('storage/' . $profilePicture->media->path) : null,
+                    ];
+                })->toArray();
+            $this->dispatch('scrollToBottom');
         }
     }
 
@@ -122,7 +132,10 @@ class Chat extends Component
             'delivered_at' => null,
         ]);
 
+        Log::info('Message sent, resetting input', ['message' => $this->message]);
         $this->message = '';
+        $this->reset('message');
+        $this->dispatch('messageSent');
         $this->loadMessages();
         $this->dispatchFirebaseNotification($chatMessage);
     }
@@ -141,7 +154,10 @@ class Chat extends Component
             'delivered_at' => null,
         ]);
 
-        $this->showStickerPopup = false; // بستن پاپ‌آپ بعد از ارسال
+        $this->showStickerPopup = false;
+        $this->message = '';
+        $this->reset('message');
+        $this->dispatch('messageSent');
         $this->loadMessages();
         $this->dispatchFirebaseNotification($chatMessage);
     }
@@ -187,9 +203,8 @@ class Chat extends Component
     public function markAsRead(): void
     {
         if ($this->selectedUserId) {
-            ChatMessage::where('receiver_id', Auth::id())
+            ChatMessage::withStatus(Auth::id(), ChatStatus::Delivered)
                 ->where('sender_id', $this->selectedUserId)
-                ->where('status', ChatStatus::Delivered)
                 ->update(['status' => ChatStatus::Read, 'read_at' => now()]);
             $this->loadMessages();
         }
@@ -197,8 +212,7 @@ class Chat extends Component
 
     public function updateDeliveredStatus(): void
     {
-        ChatMessage::where('receiver_id', Auth::id())
-            ->where('status', ChatStatus::Sent)
+        ChatMessage::withStatus(Auth::id(), ChatStatus::Sent)
             ->update(['status' => ChatStatus::Delivered, 'delivered_at' => now()]);
     }
 
