@@ -18,6 +18,7 @@ class Chat extends Component
     public $messages = [];
     public $users = [];
     public $isTyping = false;
+    public $searchQuery = '';
 
     protected $firebaseService;
 
@@ -36,8 +37,19 @@ class Chat extends Component
 
     public function loadUsers(): void
     {
-        $this->users = Cache::remember('users_' . Auth::id(), 60, function () {
-            return User::where('id', '!=', Auth::id())->get(['id', 'display_name', 'last_seen']);
+        $query = User::where('id', '!=', Auth::id());
+
+        if (!empty($this->searchQuery)) {
+            $query->where('display_name', 'like', '%' . $this->searchQuery . '%');
+        }
+
+        $this->users = Cache::remember('users_' . Auth::id() . '_' . md5($this->searchQuery), 60, function () use ($query) {
+            $users = $query->get(['id', 'display_name', 'last_seen'])->map(function ($user) {
+                $user->is_online = $user->last_seen && now()->diffInMinutes($user->last_seen) <= 5; // آنلاین اگه تو ۵ دقیقه اخیر دیده شده
+                return $user;
+            })->toArray();
+
+            return $users;
         });
     }
 
@@ -139,6 +151,7 @@ class Chat extends Component
 
     public function render()
     {
+        $this->loadUsers(); // برای آپدیت لیست با جستجو
         Auth::user()->update(['last_seen' => now()]);
         return view('livewire.chat')
             ->with(['page_title' => 'Chat'])

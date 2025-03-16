@@ -1,6 +1,9 @@
 <div class="chat-container" wire:poll.5000ms="loadMessages">
     <!-- لیست کاربران -->
     <div class="users-list">
+        <div class="search-box">
+            <input type="text" wire:model.debounce.500ms="searchQuery" placeholder="Search friends...">
+        </div>
         @foreach ($users as $user)
             <div wire:click="selectUser({{ $user['id'] }})" class="{{ $selectedUserId == $user['id'] ? 'selected' : '' }}">
                 {{ $user['display_name'] }} {{ $user['is_online'] ? '(Online)' : '' }}
@@ -8,7 +11,7 @@
         @endforeach
     </div>
 
-    <!-- پیام‌ها و تایپینگ -->
+    <!-- بخش چت -->
     @if ($selectedUserId)
         <div class="chat-box">
             <div>
@@ -30,8 +33,10 @@
                 @endforeach
             </div>
 
-            <input type="text" wire:model="message" wire:keydown="typing" placeholder="Type a message...">
-            <button wire:click="sendMessage">Send</button>
+            <div class="message-input">
+                <input type="text" wire:model="message" wire:keydown="typing" placeholder="Type a message...">
+                <button wire:click="sendMessage">Send</button>
+            </div>
         </div>
     @endif
 </div>
