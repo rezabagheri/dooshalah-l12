@@ -23,8 +23,23 @@
     </div>
 
     <!-- بخش چت -->
-    @if ($selectedUserId)
+    @if ($selectedUserId && $selectedUser)
         <div class="chat-box">
+            <div class="chat-header">
+                @if ($selectedUser['profile_photo_path'])
+                    <img src="{{ $selectedUser['profile_photo_path'] }}" alt="{{ $selectedUser['display_name'] }}" class="chat-avatar">
+                @else
+                    <img src="{{ asset('images/default-avatar.png') }}" alt="{{ $selectedUser['display_name'] }}" class="chat-avatar">
+                @endif
+                <div class="chat-user-info">
+                    <span class="chat-user-name">{{ $selectedUser['display_name'] }}</span>
+                    <div class="chat-user-status">
+                        <span class="status-indicator {{ $selectedUser['is_online'] ? 'online' : 'offline' }}"></span>
+                        <span class="chat-last-seen">{{ $selectedUser['last_seen_text'] }}</span>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 @if ($isTyping)
                     <div class="typing-indicator">Typing...</div>
@@ -45,8 +60,17 @@
             </div>
 
             <div class="message-input">
+                <button wire:click="toggleStickerPopup" class="sticker-button">😊</button>
                 <input type="text" wire:model="message" wire:keydown="typing" placeholder="Type a message...">
                 <button wire:click="sendMessage">Send</button>
+
+                @if ($showStickerPopup)
+                    <div class="sticker-popup">
+                        @foreach (get_emojis() as $emoji)
+                            <span wire:click="sendSticker('{{ $emoji['unicode'] }}')" class="sticker">{{ $emoji['unicode'] }}</span>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
     @endif

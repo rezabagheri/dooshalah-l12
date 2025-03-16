@@ -19,6 +19,8 @@ class Chat extends Component
     public $users = [];
     public $isTyping = false;
     public $searchQuery = '';
+    public $selectedUser = null;
+    public $showStickerPopup = false; // برای نمایش/مخفی کردن پاپ‌آپ استیکر
 
     protected $firebaseService;
 
@@ -68,8 +70,29 @@ class Chat extends Component
     public function selectUser(int $userId): void
     {
         $this->selectedUserId = $userId;
+        $this->loadSelectedUser();
         $this->loadMessages();
         $this->markAsRead();
+    }
+
+    public function loadSelectedUser(): void
+    {
+        if ($this->selectedUserId) {
+            $user = User::with(['media' => function ($query) {
+                $query->where('is_profile', true);
+            }])->find($this->selectedUserId, ['id', 'display_name', 'last_seen']);
+
+            if ($user) {
+                $isOnline = $user->last_seen && now()->diffInMinutes($user->last_seen) <= 5;
+                $profilePicture = $user->profilePicture();
+                $this->selectedUser = [
+                    'display_name' => $user->display_name,
+                    'is_online' => $isOnline,
+                    'profile_photo_path' => $profilePicture && $profilePicture->media ? asset('storage/' . $profilePicture->media->path) : null,
+                    'last_seen_text' => $isOnline ? 'Online' : ($user->last_seen ? 'Left ' . $user->last_seen->diffForHumans() : 'Never seen'),
+                ];
+            }
+        }
     }
 
     public function loadMessages(): void
@@ -102,6 +125,30 @@ class Chat extends Component
         $this->message = '';
         $this->loadMessages();
         $this->dispatchFirebaseNotification($chatMessage);
+    }
+
+    public function sendSticker(string $sticker): void
+    {
+        if (!$this->selectedUserId || empty($sticker)) {
+            return;
+        }
+
+        $chatMessage = ChatMessage::create([
+            'sender_id' => Auth::id(),
+            'receiver_id' => $this->selectedUserId,
+            'content' => $sticker,
+            'status' => ChatStatus::Sent,
+            'delivered_at' => null,
+        ]);
+
+        $this->showStickerPopup = false; // بستن پاپ‌آپ بعد از ارسال
+        $this->loadMessages();
+        $this->dispatchFirebaseNotification($chatMessage);
+    }
+
+    public function toggleStickerPopup(): void
+    {
+        $this->showStickerPopup = !$this->showStickerPopup;
     }
 
     private function dispatchFirebaseNotification(ChatMessage $chatMessage): void
@@ -164,6 +211,9 @@ class Chat extends Component
     public function render()
     {
         $this->loadUsers();
+        if ($this->selectedUserId) {
+            $this->loadSelectedUser();
+        }
         Auth::user()->update(['last_seen' => now()]);
         return view('livewire.chat')
             ->with(['page_title' => 'Chat'])

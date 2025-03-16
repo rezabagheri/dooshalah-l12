@@ -47,19 +47,19 @@
 
 .user-info {
     display: flex;
-    flex-direction: column; /* عمودی برای دو خط */
+    flex-direction: column;
 }
 
 .user-name {
     font-weight: bold;
     font-size: 14px;
-    line-height: 1.2; /* فاصله خطوط */
+    line-height: 1.2;
 }
 
 .user-status {
     display: flex;
     align-items: center;
-    margin-top: 2px; /* فاصله از نام */
+    margin-top: 2px;
 }
 
 .status-indicator {
@@ -78,12 +78,11 @@
 }
 
 .last-seen {
-    font-size: 11px; /* فونت کوچک‌تر */
+    font-size: 11px;
     color: #666;
     line-height: 1;
 }
 
-/* بقیه استایل‌ها بدون تغییر */
 .chat-box {
     width: 70%;
     padding: 10px;
@@ -91,10 +90,49 @@
     flex-direction: column;
 }
 
+.chat-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    background: #f8f9fa;
+}
+
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.chat-user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-user-name {
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.chat-user-status {
+    display: flex;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.chat-last-seen {
+    font-size: 12px;
+    color: #666;
+    line-height: 1;
+}
+
 .messages {
     flex-grow: 1;
     overflow-y: auto;
-    max-height: calc(80vh - 70px);
+    max-height: calc(80vh - 130px);
 }
 
 .message {
@@ -140,6 +178,7 @@
     display: flex;
     gap: 10px;
     margin-top: 10px;
+    position: relative; /* برای پاپ‌آپ */
 }
 
 .message-input input {
@@ -149,4 +188,39 @@
 
 .message-input button {
     padding: 5px 10px;
+}
+
+.sticker-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 10px;
+}
+
+.sticker-popup {
+    position: absolute;
+    bottom: 50px; /* بالای message-input */
+    left: 0;
+    width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.sticker {
+    font-size: 24px;
+    margin: 5px;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.sticker:hover {
+    background: #f0f0f0;
+    border-radius: 5px;
 }
