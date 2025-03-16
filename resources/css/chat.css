@@ -26,37 +26,64 @@
     box-sizing: border-box;
 }
 
-.users-list ul {
-    list-style: none;
-    padding: 0;
-}
-
-.users-list li {
+.users-list div {
+    display: flex;
+    align-items: center;
     padding: 10px;
     cursor: pointer;
 }
 
-.users-list li.active,
 .users-list div.selected {
     background: #e0e0e0;
 }
 
-.status.online {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    background: green;
+.user-avatar {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
 }
 
-.status.offline {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    background: grey;
-    border-radius: 50%;
+.user-info {
+    display: flex;
+    flex-direction: column; /* عمودی برای دو خط */
 }
 
+.user-name {
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 1.2; /* فاصله خطوط */
+}
+
+.user-status {
+    display: flex;
+    align-items: center;
+    margin-top: 2px; /* فاصله از نام */
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-indicator.online {
+    background: #28a745; /* سبز */
+}
+
+.status-indicator.offline {
+    background: #dc3545; /* قرمز */
+}
+
+.last-seen {
+    font-size: 11px; /* فونت کوچک‌تر */
+    color: #666;
+    line-height: 1;
+}
+
+/* بقیه استایل‌ها بدون تغییر */
 .chat-box {
     width: 70%;
     padding: 10px;

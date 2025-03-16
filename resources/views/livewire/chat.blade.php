@@ -6,7 +6,18 @@
         </div>
         @foreach ($users as $user)
             <div wire:click="selectUser({{ $user['id'] }})" class="{{ $selectedUserId == $user['id'] ? 'selected' : '' }}">
-                {{ $user['display_name'] }} {{ $user['is_online'] ? '(Online)' : '' }}
+                @if ($user['profile_photo_path'])
+                    <img src="{{ $user['profile_photo_path'] }}" alt="{{ $user['display_name'] }}" class="user-avatar">
+                @else
+                    <img src="{{ asset('images/default-avatar.png') }}" alt="{{ $user['display_name'] }}" class="user-avatar">
+                @endif
+                <div class="user-info">
+                    <span class="user-name">{{ $user['display_name'] }}</span>
+                    <div class="user-status">
+                        <span class="status-indicator {{ $user['is_online'] ? 'online' : 'offline' }}"></span>
+                        <span class="last-seen">{{ $user['last_seen_text'] }}</span>
+                    </div>
+                </div>
             </div>
         @endforeach
     </div>

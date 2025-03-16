@@ -37,7 +37,10 @@ class Chat extends Component
 
     public function loadUsers(): void
     {
-        $query = User::where('id', '!=', Auth::id());
+        $query = User::where('id', '!=', Auth::id())
+            ->with(['media' => function ($query) {
+                $query->where('is_profile', true);
+            }]);
 
         if (!empty($this->searchQuery)) {
             $query->where('display_name', 'like', '%' . $this->searchQuery . '%');
@@ -45,8 +48,17 @@ class Chat extends Component
 
         $this->users = Cache::remember('users_' . Auth::id() . '_' . md5($this->searchQuery), 60, function () use ($query) {
             $users = $query->get(['id', 'display_name', 'last_seen'])->map(function ($user) {
-                $user->is_online = $user->last_seen && now()->diffInMinutes($user->last_seen) <= 5; // آنلاین اگه تو ۵ دقیقه اخیر دیده شده
-                return $user;
+                $isOnline = $user->last_seen && now()->diffInMinutes($user->last_seen) <= 5;
+                $profilePicture = $user->profilePicture();
+                $lastSeenText = $isOnline ? 'Online' : ($user->last_seen ? 'Left ' . $user->last_seen->diffForHumans() : 'Never seen');
+
+                return [
+                    'id' => $user->id,
+                    'display_name' => $user->display_name,
+                    'is_online' => $isOnline,
+                    'profile_photo_path' => $profilePicture && $profilePicture->media ? asset('storage/' . $profilePicture->media->path) : null,
+                    'last_seen_text' => $lastSeenText,
+                ];
             })->toArray();
 
             return $users;
@@ -151,7 +163,7 @@ class Chat extends Component
 
     public function render()
     {
-        $this->loadUsers(); // برای آپدیت لیست با جستجو
+        $this->loadUsers();
         Auth::user()->update(['last_seen' => now()]);
         return view('livewire.chat')
             ->with(['page_title' => 'Chat'])
