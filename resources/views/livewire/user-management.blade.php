@@ -16,6 +16,13 @@ use App\Enums\UserRole;
             </div>
         </div>
 
+        @if (session()->has('message'))
+            <div class="alert alert-success mx-3">{{ session('message') }}</div>
+        @endif
+        @if (session()->has('error'))
+            <div class="alert alert-danger mx-3">{{ session('error') }}</div>
+        @endif
+
         <table class="table table-striped table-hover align-middle">
             <thead class="bg-secondary text-white">
                 <tr>
@@ -98,9 +105,36 @@ use App\Enums\UserRole;
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('admin.user.show', $user->id) }}" class="btn btn-sm btn-dark"><i class="fas fa-eye"></i> View</a>
-                            <button wire:click="openResetPasswordModal({{ $user->id }})" class="btn btn-sm btn-dark"><i class="fas fa-key"></i> Reset Password</button>
-                            <a href="https://www.google.com/search?q={{ urlencode($user->first_name . ' ' . $user->last_name) }}" class="btn btn-sm btn-dark" target="_blank">Search Google</a>
+                            <!-- دسکتاپ: آیکون‌ها -->
+                            <div class="d-none d-md-inline">
+                                <a href="{{ route('admin.user.show', $user->id) }}" class="btn btn-sm btn-info" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button wire:click="openResetPasswordModal({{ $user->id }})" class="btn btn-sm btn-warning" title="Reset Password">
+                                    <i class="bi bi-key"></i>
+                                </button>
+                                <a href="https://www.google.com/search?q={{ urlencode($user->first_name . ' ' . $user->last_name) }}" class="btn btn-sm btn-secondary" target="_blank" title="Search Google">
+                                    <i class="bi bi-search"></i>
+                                </a>
+                                <button wire:click="sendResetPasswordLink({{ $user->id }})" class="btn btn-sm btn-primary" title="Send Reset Password Link">
+                                    <i class="bi bi-envelope"></i>
+                                </button>
+                            </div>
+
+                            <!-- موبایل: دراپ‌داون -->
+                            <div class="d-md-none">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-dark dropdown-toggle" type="button" id="dropdownMenuButton{{ $user->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-gear"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ $user->id }}">
+                                        <li><a href="{{ route('admin.user.show', $user->id) }}" class="dropdown-item"><i class="bi bi-eye me-1"></i> View</a></li>
+                                        <li><button wire:click="openResetPasswordModal({{ $user->id }})" class="dropdown-item"><i class="bi bi-key me-1"></i> Reset Password</button></li>
+                                        <li><a href="https://www.google.com/search?q={{ urlencode($user->first_name . ' ' . $user->last_name) }}" target="_blank" class="dropdown-item"><i class="bi bi-search me-1"></i> Search Google</a></li>
+                                        <li><button wire:click="sendResetPasswordLink({{ $user->id }})" class="dropdown-item"><i class="bi bi-envelope me-1"></i> Send Reset Password Link</button></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -132,8 +166,8 @@ use App\Enums\UserRole;
                         </div>
                         <div class="mb-3">
                             <label for="password_confirmation" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="password_confirmation" wire:model="newPassword_confirmation"> <!-- تغییر به newPassword_confirmation -->
-                            @error('newPassword_confirmation') <span class="text-danger">{{ $message }}</span> @enderror <!-- تغییر به newPassword_confirmation -->
+                            <input type="password" class="form-control" id="password_confirmation" wire:model="newPassword_confirmation">
+                            @error('newPassword_confirmation') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
