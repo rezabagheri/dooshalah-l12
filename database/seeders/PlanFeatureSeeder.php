@@ -25,6 +25,7 @@ class PlanFeatureSeeder extends Seeder
             'block_user',
             'unblock_user',
             'report_user',
+            'use_chat',
             'send_message',
             'read_message',
             'message_inbox',

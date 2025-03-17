@@ -68,6 +68,13 @@
                     <p>Thank you for your purchase! Your invoice is ready above.</p>
                 </div>
 
+                <!-- اضافه کردن پیام خطای ایمیل -->
+                @if (isset($paymentDetails['email_error']))
+                    <div class="alert alert-warning mt-2 non-printable">
+                        <p>{{ $paymentDetails['email_error'] }}</p>
+                    </div>
+                @endif
+
                 <div class="row mt-4 non-printable">
                     <div class="col-12 text-center">
                         <a href="{{ route('friends.index') }}" class="btn btn-primary">

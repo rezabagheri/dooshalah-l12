@@ -7,6 +7,7 @@ use App\Mail\PaymentFailedMail;
 use App\Mail\PaymentSuccessMail;
 use App\Models\Notification;
 use App\Models\Payment;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
@@ -30,7 +31,15 @@ class PaymentCallback extends Component
             ];
             $payment = Payment::find($this->paymentId);
             if ($payment) {
-                Mail::to($payment->user->email)->send(new PaymentFailedMail($payment, $this->paymentDetails['reason']));
+                try {
+                    Mail::to($payment->user->email)->send(new PaymentFailedMail($payment, $this->paymentDetails['reason']));
+                } catch (\Exception $e) {
+                    Log::error('Failed to send payment failed email', [
+                        'user_id' => $payment->user->id,
+                        'email' => $payment->user->email,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
             return;
         }
@@ -66,7 +75,18 @@ class PaymentCallback extends Component
                 'payment_date' => $payment->payment_date->format('Y-m-d H:i:s'),
             ];
 
-            Mail::to($payment->user->email)->send(new PaymentSuccessMail($payment));
+            // ارسال ایمیل با try-catch
+            try {
+                Mail::to($payment->user->email)->send(new PaymentSuccessMail($payment));
+            } catch (\Exception $e) {
+                Log::error('Failed to send payment success email', [
+                    'user_id' => $payment->user->id,
+                    'email' => $payment->user->email,
+                    'error' => $e->getMessage(),
+                ]);
+                // می‌تونیم یه پیام به paymentDetails اضافه کنیم
+                $this->paymentDetails['email_error'] = 'We couldn’t send you a confirmation email. Please check your email address.';
+            }
 
             Notification::create([
                 'user_id' => auth()->user()->id,
@@ -90,7 +110,15 @@ class PaymentCallback extends Component
                 'reason' => $response['error']['message'] ?? 'An unknown error occurred during payment processing.',
             ];
 
-            Mail::to($payment->user->email)->send(new PaymentFailedMail($payment, $this->paymentDetails['reason']));
+            try {
+                Mail::to($payment->user->email)->send(new PaymentFailedMail($payment, $this->paymentDetails['reason']));
+            } catch (\Exception $e) {
+                Log::error('Failed to send payment failed email', [
+                    'user_id' => $payment->user->id,
+                    'email' => $payment->user->email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             Notification::create([
                 'user_id' => auth()->user()->id,

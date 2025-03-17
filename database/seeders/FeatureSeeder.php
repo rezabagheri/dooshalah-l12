@@ -69,6 +69,10 @@ class FeatureSeeder extends Seeder
                 'description' => 'Read private messages from other users.',
             ],
             [
+                'name' => 'use_chat',
+                'description' => 'Using real-time chat messages.',
+            ],
+            [
                 'name' => 'send_chat_message',
                 'description' => 'Send real-time chat messages to other users.',
             ],

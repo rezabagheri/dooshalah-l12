@@ -1,23 +1,34 @@
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+    <!--begin::Sidebar Brand-->
     <div class="sidebar-brand">
-        <img src="/dist/assets/img/logo.svg" alt="Dooshalah" class="brand-image opacity-75 shadow" />
-        <a href="{{ url('/') }}" class="brand-link">
-            <span class="brand-text font-weight-light">My App</span>
+        <a class="brand-link" href="{{ url('/') }}">
+            <img src="/dist/assets/img/logo.svg" alt="Dooshalah" class="brand-image opacity-75 shadow">
+            <span class="brand-text fw-light">My App</span>
         </a>
     </div>
+    <!--end::Sidebar Brand-->
 
-    <div class="sidebar-wrapper">
+    <!--begin::Sidebar Wrapper-->
+    <div class="sidebar-wrapper" data-overlayscrollbars="host">
+        <div class="os-size-observer">
+            <div class="os-size-observer-listener"></div>
+        </div>
         <nav class="mt-2">
+            <!--begin::Sidebar Menu-->
             <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
                 @foreach ($menuItems as $item)
-                    <li class="nav-item {{ $item->children->isNotEmpty() ? 'menu-open' : '' }}">
+                    @php
+                        // چک کردن اینکه آیا یکی از زیرمنوها فعال است یا نه
+                        $hasActiveChild = $item->children->contains(fn ($child) => Route::currentRouteName() === $child->route);
+                    @endphp
+                    <li class="nav-item {{ $hasActiveChild ? 'menu-open' : '' }}">
                         <a href="{{ $item->route === '#' ? '#' : route($item->route) }}"
-                           class="nav-link {{ request()->routeIs($item->route) ? 'active' : '' }}">
+                           class="nav-link {{ Route::currentRouteName() === $item->route ? 'active' : '' }}">
                             <i class="nav-icon {{ $item->icon }}"></i>
                             <p>
                                 {{ $item->label }}
                                 @if ($item->children->isNotEmpty())
-                                    <i class="bi bi-chevron-down right"></i>
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
                                 @endif
                             </p>
                         </a>
@@ -26,7 +37,7 @@
                                 @foreach ($item->children as $child)
                                     <li class="nav-item">
                                         <a href="{{ $child->route === '#' ? '#' : route($child->route) }}"
-                                           class="nav-link {{ request()->routeIs($child->route) ? 'active' : '' }}">
+                                           class="nav-link {{ Route::currentRouteName() === $child->route ? 'active' : '' }}">
                                             <i class="nav-icon {{ $child->icon }}"></i>
                                             <p>{{ $child->label }}</p>
                                         </a>
@@ -36,10 +47,12 @@
                         @endif
                     </li>
                     @if ($item->has_divider)
-                        <li class="nav-item"><div class="dropdown-divider"></div></li>
+                        <li class="nav-header">MAIN MENU</li>
                     @endif
                 @endforeach
             </ul>
+            <!--end::Sidebar Menu-->
         </nav>
     </div>
+    <!--end::Sidebar Wrapper-->
 </aside>

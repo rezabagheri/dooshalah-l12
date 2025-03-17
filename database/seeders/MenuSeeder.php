@@ -15,7 +15,52 @@ class MenuSeeder extends Seeder
             ['name' => 'Sidebar Menu']
         );
 
-        // Dashboard
+        // Admin Panel (Top-level item)
+        $adminPanel = MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'label' => 'Admin Panel',
+            ],
+            [
+                'route' => '#',
+                'icon' => 'bi bi-shield-check',
+                'order' => 0,
+                'has_divider' => true,
+                'roles' => 'admin,super_admin', // Only for Admin and SuperAdmin
+            ]
+        );
+
+        // Admin Dashboard (Sub-item)
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $adminPanel->id,
+                'label' => 'Dashboard',
+            ],
+            [
+                'route' => 'admin.dashboard',
+                'icon' => 'bi bi-speedometer',
+                'order' => 1,
+                'roles' => 'admin,super_admin',
+            ]
+        );
+
+        // User Management (Sub-item)
+        MenuItem::updateOrCreate(
+            [
+                'menu_id' => $sidebar->id,
+                'parent_id' => $adminPanel->id,
+                'label' => 'User Management',
+            ],
+            [
+                'route' => 'admin.user',
+                'icon' => 'bi bi-people',
+                'order' => 2,
+                'roles' => 'admin,super_admin',
+            ]
+        );
+
+        // Dashboard (For all users)
         $dashboard = MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
@@ -43,7 +88,7 @@ class MenuSeeder extends Seeder
             ]
         );
 
-        // Settings (منوی اصلی)
+        // Settings (Top-level item)
         $settings = MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
@@ -57,7 +102,7 @@ class MenuSeeder extends Seeder
             ]
         );
 
-        // زیرمنوهای Settings
+        // Sub-items for Settings
         MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
@@ -136,7 +181,7 @@ class MenuSeeder extends Seeder
             ]
         );
 
-        // Friends (منوی اصلی)
+        // Friends (Top-level item)
         $friends = MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
@@ -150,7 +195,7 @@ class MenuSeeder extends Seeder
             ]
         );
 
-        // زیرمنوهای Friends
+        // Sub-items for Friends
         MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
@@ -229,8 +274,8 @@ class MenuSeeder extends Seeder
             ]
         );
 
-
-        $support = MenuItem::updateOrCreate(
+        // Support
+        MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
                 'label' => 'Support',
@@ -243,7 +288,8 @@ class MenuSeeder extends Seeder
             ]
         );
 
-        $payments = MenuItem::updateOrCreate(
+        // Payment History
+        MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
                 'label' => 'Payment History',
@@ -256,7 +302,8 @@ class MenuSeeder extends Seeder
             ]
         );
 
-        $notifications = MenuItem::updateOrCreate(
+        // Notifications
+        MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
                 'label' => 'Notifications',
@@ -269,8 +316,8 @@ class MenuSeeder extends Seeder
             ]
         );
 
-
-        $messages = MenuItem::updateOrCreate(
+        // Messages
+        MenuItem::updateOrCreate(
             [
                 'menu_id' => $sidebar->id,
                 'label' => 'Messages',

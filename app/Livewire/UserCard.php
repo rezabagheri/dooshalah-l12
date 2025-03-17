@@ -10,27 +10,55 @@ use App\Models\Block;
 use App\Models\Friendship;
 use App\Models\Notification;
 use App\Models\Report;
-use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserAnswer;
 use App\Models\UserMatchScore;
+use App\Traits\HasFeatureAccess;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
+/**
+ * Class UserCard
+ *
+ * A Livewire component for displaying and managing user interactions in a card format.
+ *
+ * @package App\Livewire
+ */
 class UserCard extends Component
 {
+    use HasFeatureAccess;
+
+    /** @var User The user being displayed in the card */
     public User $user;
+
+    /** @var Friendship|null The friendship relationship between the current user and the displayed user */
     public ?Friendship $friendship = null;
+
+    /** @var Block|null The block status between the current user and the displayed user */
     public ?Block $block = null;
+
+    /** @var float The match percentage between the current user and the displayed user */
     public float $matchPercentage = 0;
 
+    /** @var string The reason for reporting the user */
     public $reportReason = '';
+
+    public $showModal = false;
+    /** @var string The description for reporting the user */
     public $reportDescription = '';
 
+    /** @var array Validation rules for reporting */
     protected $rules = [
         'reportReason' => 'required|string|max:255',
         'reportDescription' => 'required|string|min:10|max:1000',
     ];
 
+    /**
+     * Mount the component with the specified user.
+     *
+     * @param User $user The user to display
+     * @return void
+     */
     public function mount(User $user): void
     {
         $this->user = $user;
@@ -38,6 +66,11 @@ class UserCard extends Component
         $this->calculateMatchPercentage();
     }
 
+    /**
+     * Check the relationship (friendship or block) between the current user and the displayed user.
+     *
+     * @return void
+     */
     private function checkRelationship(): void
     {
         $currentUser = auth()->user();
@@ -53,6 +86,11 @@ class UserCard extends Component
         $this->block = Block::where('user_id', $currentUser->id)->where('target_id', $this->user->id)->first();
     }
 
+    /**
+     * Calculate the match percentage between the current user and the displayed user.
+     *
+     * @return void
+     */
     private function calculateMatchPercentage(): void
     {
         $this->matchPercentage =
@@ -61,16 +99,11 @@ class UserCard extends Component
                 ->value('match_score') ?? 0;
     }
 
-    private function hasFeatureAccess($feature): bool
-    {
-        $activeSubscription = Subscription::where('user_id', auth()->id())
-            ->where('status', 'active')
-            ->where('end_date', '>=', now())
-            ->first();
-
-        return $activeSubscription && $activeSubscription->plan->features()->where('name', $feature)->exists();
-    }
-
+    /**
+     * Send a friendship request to the displayed user.
+     *
+     * @return void
+     */
     public function sendFriendshipRequest(): void
     {
         if (!$this->hasFeatureAccess('send_request')) {
@@ -99,6 +132,12 @@ class UserCard extends Component
         $this->dispatch('friendship-request-sent');
         $this->checkRelationship();
     }
+
+    /**
+     * Accept a friendship request from the displayed user.
+     *
+     * @return void
+     */
     public function acceptFriendship(): void
     {
         if (!$this->hasFeatureAccess('accept_request')) {
@@ -126,6 +165,11 @@ class UserCard extends Component
         }
     }
 
+    /**
+     * Reject a friendship request from the displayed user.
+     *
+     * @return void
+     */
     public function rejectFriendship(): void
     {
         if (!$this->hasFeatureAccess('accept_request')) {
@@ -140,6 +184,11 @@ class UserCard extends Component
         }
     }
 
+    /**
+     * Cancel a sent friendship request.
+     *
+     * @return void
+     */
     public function cancelFriendship(): void
     {
         if (!$this->hasFeatureAccess('send_request')) {
@@ -154,6 +203,11 @@ class UserCard extends Component
         }
     }
 
+    /**
+     * Remove the displayed user from friends list.
+     *
+     * @return void
+     */
     public function unfriend(): void
     {
         if (!$this->hasFeatureAccess('remove_friend')) {
@@ -168,24 +222,111 @@ class UserCard extends Component
         }
     }
 
-    public function block(): void
+    public function blockUser(): void
     {
+        if (config('app.debug')) {
+            Log::info('BlockUser method called', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+        }
+
         if (!$this->hasFeatureAccess('block_user')) {
             redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to block users.');
             return;
         }
 
-        Block::create([
+        // if ($this->isBlocked) {
+        //     $this->dispatch('toast-message', [
+        //         'type' => 'warning',
+        //         'message' => 'This user is already blocked!',
+        //     ]);
+        //     return;
+        // }
+
+        if (config('app.debug')) {
+            Log::info('Attempting to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+        }
+
+        $blocked = Block::create([
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,
         ]);
+
+        if ($blocked) {
+            if (config('app.debug')) {
+                Log::info('User blocked successfully', ['block_id' => $blocked->id]);
+            }
+            $this->dispatch('toast-message', [
+                'type' => 'success',
+                'message' => 'User blocked successfully!',
+            ]);
+        } else {
+            if (config('app.debug')) {
+                Log::error('Failed to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+            }
+            $this->dispatch('toast-message', [
+                'type' => 'error',
+                'message' => 'Failed to block user. Please try again.',
+            ]);
+            return;
+        }
+        // if ($blocked) {
+        //     if (config('app.debug')) {
+        //         Log::info('User blocked successfully', ['block_id' => $blocked->id]);
+        //     }
+        // } else {
+        //     Log::error('Failed to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+        // }
+
         if ($this->friendship) {
             $this->friendship->delete();
+            Log::info('Friendship deleted due to block', ['friendship_id' => $this->friendship->id]);
         }
+
+        $this->dispatch('user-blocked');
+        //$this->dispatch('test-blocked');
+        $this->checkRelationship();
+    }
+
+
+    public function block(): void
+    {
+        //Log::info('Block method called', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+        //$this->dispatch('user-blocked');
+
+        Log::info('Block method called', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+
+        if (!$this->hasFeatureAccess('block_user')) {
+            Log::info('User lacks block_user feature access', ['user_id' => auth()->user()->id]);
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to block users.');
+            return;
+        }
+
+        Log::info('Attempting to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+
+        $blocked = Block::create([
+            'user_id' => auth()->user()->id,
+            'target_id' => $this->user->id,
+        ]);
+
+        if ($blocked) {
+            Log::info('User blocked successfully', ['block_id' => $blocked->id]);
+        } else {
+            Log::error('Failed to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+        }
+
+        if ($this->friendship) {
+            $this->friendship->delete();
+            Log::info('Friendship deleted due to block', ['friendship_id' => $this->friendship->id]);
+        }
+
         $this->dispatch('user-blocked');
         $this->checkRelationship();
     }
 
+    /**
+     * Unblock the displayed user.
+     *
+     * @return void
+     */
     public function unblock(): void
     {
         if (!$this->hasFeatureAccess('unblock_user')) {
@@ -200,35 +341,63 @@ class UserCard extends Component
         }
     }
 
-    public function report(): void
+
+
+    public function submitReport($data): void
     {
-        if (!$this->hasFeatureAccess('report_user')) {
-            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to report users.');
+        Log::info('submitReport called', [
+            'user_id' => auth()->user()->id,
+            'target_id' => $this->user->id,
+            'reason' => $data['reportReason'],
+            'description' => $data['reportDescription'],
+        ]);
+
+        $validator = \Illuminate\Support\Facades\Validator::make($data, [
+            'reportReason' => 'required|string|max:255',
+            'reportDescription' => 'required|string|min:10|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            Log::info('Validation failed', ['errors' => $validator->errors()->all()]);
+            $this->dispatch('show-error-modal', [
+                'errors' => $validator->errors()->all(),
+                'userId' => $this->user->id,
+            ]);
             return;
         }
 
-        // فقط دسترسی رو چک می‌کنه، ثبت گزارش توی submitReport انجام می‌شه
-    }
-
-    public function submitReport()
-    {
-        $this->validate();
-
-        Report::create([
+        $report = Report::create([
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,
-            'report' => $this->reportReason,
-            'description' => $this->reportDescription,
+            'report' => $data['reportReason'],
+            'description' => $data['reportDescription'],
             'status' => FriendshipStatus::Pending->value,
             'severity' => Severity::Medium->value,
         ]);
 
-        $this->reportReason = '';
-        $this->reportDescription = '';
-        $this->dispatch('user-reported');
-        $this->dispatch('close-modal'); // برای بستن مودال
+        Log::info('Report created', ['report_id' => $report->id]);
+        $this->dispatch('report-success', ['userId' => $this->user->id]);
+    }
+    /**
+     * Redirect to the chat page with the displayed user.
+     *
+     * @return void
+     */
+    public function startChat(): void
+    {
+        if (!$this->hasFeatureAccess('use_chat')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to use chat.');
+            return;
+        }
+
+        redirect()->route('chat', ['user' => $this->user->id]);
     }
 
+    /**
+     * Render the user card view.
+     *
+     * @return \Illuminate\View\View
+     */
     public function render()
     {
         $visibleInterests = UserAnswer::where('user_id', $this->user->id)->join('questions', 'user_answers.question_id', '=', 'questions.id')->where('questions.is_visible', true)->select('user_answers.*')->orderByDesc('questions.weight')->take(4)->with('question')->get()->map(

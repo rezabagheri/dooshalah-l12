@@ -73,10 +73,17 @@ Route::middleware(['auth'])->group(function () {
     //Chat Route
     Route::post('/chat/save-fcm-token', [ChatController::class, 'saveFcmToken'])->name('chat.save-fcm-token');
     Route::get('/chat', \App\Livewire\Chat::class)->name('chat');
+
+
+    // Admin routes
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', \App\Livewire\AdminDashboard::class)->name('dashboard');
+        Route::get('/user', \App\Livewire\UserManagement::class)->name('user');
+    });
+
+    // Redirect /admin to admin.dashboard
+    Route::get('/admin', fn () => redirect()->route('admin.dashboard'));
+
 });
-
-
-
-
 
 require __DIR__ . '/auth.php';

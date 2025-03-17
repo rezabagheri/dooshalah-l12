@@ -1,5 +1,6 @@
 import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'admin-lte/dist/js/adminlte';
+import { OverlayScrollbars } from 'overlayscrollbars';
 import { requestNotificationPermission, onForegroundMessage } from './firebase.js';
 import { initializeToastListeners, showToast } from './toast.js';
 
@@ -14,9 +15,19 @@ const excludedPaths = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Bootstrap and AdminLTE loaded');
+    console.log('Bootstrap, AdminLTE, and OverlayScrollbars loaded');
     const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
     dropdownElementList.forEach(dropdown => new window.bootstrap.Dropdown(dropdown));
+
+    // فعال کردن OverlayScrollbars برای سایدبار
+    const sidebar = document.querySelector('.sidebar-wrapper');
+    if (sidebar) {
+        OverlayScrollbars(sidebar, {
+            scrollbars: {
+                autoHide: 'scroll',
+            },
+        });
+    }
 
     if (!excludedPaths.includes(window.location.pathname)) {
         setTimeout(() => {
@@ -32,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Unable to enable notifications. Check your browser settings and refresh the page.', 'warning');
                 });
             } else if (Notification.permission === 'granted') {
-                // اگه از قبل اجازه داده شده، توکن رو بگیر و ذخیره کن
                 requestNotificationPermission().then((token) => {
                     if (token) {
                         console.log('Token refreshed:', token);
