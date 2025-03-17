@@ -73,11 +73,7 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'first_name', 'middle_name', 'last_name', 'display_name', 'gender', 'birth_date',
-        'email', 'phone_number', 'father_name', 'mother_name', 'born_country', 'living_country',
-        'email_verified_at', 'password', 'role', 'status', 'locale', 'fcm_token', 'last_seen'
-    ];
+    protected $fillable = ['first_name', 'middle_name', 'last_name', 'display_name', 'gender', 'birth_date', 'email', 'phone_number', 'father_name', 'mother_name', 'born_country', 'living_country', 'email_verified_at', 'password', 'role', 'status', 'locale', 'fcm_token', 'last_seen'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -201,6 +197,16 @@ class User extends Authenticatable
         return $this->hasMany(Subscription::class);
     }
 
+    public function latestSubscription()
+    {
+        return $this->subscriptions()->latest()->first();
+    }
+
+    public function activePlan()
+    {
+        $subscription = $this->latestSubscription();
+        return $subscription?->plan;
+    }
     /**
      * Get the friendships initiated by the user.
      *

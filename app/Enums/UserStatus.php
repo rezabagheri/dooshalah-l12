@@ -13,4 +13,9 @@ enum UserStatus: string
     case Pending = 'pending';
     case Suspended = 'suspended';
     case Blocked = 'blocked';
+
+    public function label(): string
+    {
+        return ucfirst($this->value);
+    }
 }

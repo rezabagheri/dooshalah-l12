@@ -86,4 +86,11 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
+
+Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', \App\Livewire\AdminDashboard::class)->name('dashboard');
+    Route::get('/user', \App\Livewire\UserManagement::class)->name('user');
+    Route::get('/user/show/{id}', fn ($id) => 'Show user ' . $id)->name('user.show'); // موقت
+    Route::get('/user/reset-password/{id}', fn ($id) => 'Reset password for user ' . $id)->name('user.reset-password'); // موقت
+});
 require __DIR__ . '/auth.php';

@@ -67,4 +67,15 @@ document.addEventListener('livewire:init', () => {
     onForegroundMessage((payload) => {
         showToast(payload.notification.body, 'success');
     });
+
+    // مدیریت مودال با Livewire
+    window.addEventListener('open-modal', () => {
+        const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+        modal.show();
+    });
+
+    window.addEventListener('close-modal', () => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+        modal.hide();
+    });
 });

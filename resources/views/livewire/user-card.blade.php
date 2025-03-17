@@ -76,7 +76,7 @@
                     <button wire:click="blockUser" class="btn btn-warning btn-sm">
                         <i class="bi bi-lock me-1"></i> Block
                     </button>
-                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#reportUserModal{{ $user->id }}">
+                    <button wire:click="openReportModal" class="btn btn-danger btn-sm">
                         <i class="bi bi-exclamation-triangle me-1"></i> Report
                     </button>
                 @endif
@@ -109,7 +109,7 @@
                         @endif
                         @if (!$block)
                             <li><button wire:click="blockUser" class="dropdown-item"><i class="bi bi-lock me-1"></i> Block</button></li>
-                            <li><button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#reportUserModal{{ $user->id }}"><i class="bi bi-exclamation-triangle me-1"></i> Report</button></li>
+                            <li><button wire:click="openReportModal" class="dropdown-item"><i class="bi bi-exclamation-triangle me-1"></i> Report</button></li>
                         @endif
                     </ul>
                 </div>
@@ -118,8 +118,8 @@
     </div>
 
     <!-- مودال گزارش -->
-    <div class="modal fade" id="reportUserModal{{ $user->id }}" tabindex="-1"
-        aria-labelledby="reportUserModalLabel{{ $user->id }}" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="reportUserModal{{ $user->id }}" tabindex="-1"
+         aria-labelledby="reportUserModalLabel{{ $user->id }}" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -127,16 +127,18 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="reportForm{{ $user->id }}">
+                    <form wire:submit.prevent="submitReport">
                         <div class="mb-3">
                             <label for="reportReason{{ $user->id }}" class="form-label">Reason for Report</label>
                             <input type="text" class="form-control" id="reportReason{{ $user->id }}"
-                                name="reportReason" placeholder="e.g., Inappropriate behavior">
+                                   wire:model="reportReason" placeholder="e.g., Inappropriate behavior">
+                            @error('reportReason') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="mb-3">
                             <label for="reportDescription{{ $user->id }}" class="form-label">Description</label>
                             <textarea class="form-control" id="reportDescription{{ $user->id }}" rows="4"
-                                name="reportDescription" placeholder="Please provide details..."></textarea>
+                                      wire:model="reportDescription" placeholder="Please provide details..."></textarea>
+                            @error('reportDescription') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -148,131 +150,17 @@
         </div>
     </div>
 
-    <!-- مودال خطا -->
-    <div class="modal fade" id="reportErrorModal{{ $user->id }}" tabindex="-1"
-        aria-labelledby="reportErrorModalLabel{{ $user->id }}" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="reportErrorModalLabel{{ $user->id }}">Error</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="errorMessages{{ $user->id }}" class="text-danger"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-target="#reportUserModal{{ $user->id }}"
-                        data-bs-toggle="modal">Back to Report</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     @once
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const forms = document.querySelectorAll('[id^="reportForm"]');
-                const modals = document.querySelectorAll('[id^="reportUserModal"]');
-
-                // تابع پاکسازی سایه و فرم
-                function cleanupModal(modalElement) {
-                    const backdrop = document.querySelector('.modal-backdrop');
-                    if (backdrop) {
-                        backdrop.remove();
-                    }
-                    document.body.classList.remove('modal-open');
-                    document.body.style.overflow = 'auto';
-                    document.body.style.paddingRight = '';
-                    const form = modalElement?.querySelector('form');
-                    if (form) {
-                        form.reset();
-                    }
-                }
-
-                // مدیریت بستن مودال‌ها
-                modals.forEach(modalElement => {
-                    modalElement.addEventListener('hidden.bs.modal', () => {
-                        console.log('Modal closed: ' + modalElement.id);
-                        cleanupModal(modalElement);
-                    });
+            document.addEventListener('livewire:init', () => {
+                window.addEventListener('open-report-modal', () => {
+                    const modal = new bootstrap.Modal(document.getElementById('reportUserModal{{ $user->id }}'));
+                    modal.show();
                 });
 
-                // ارسال فرم
-                forms.forEach(form => {
-                    form.addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        const userId = form.id.replace('reportForm', '');
-                        const data = {
-                            reportReason: form.querySelector('#reportReason' + userId).value,
-                            reportDescription: form.querySelector('#reportDescription' + userId).value,
-                        };
-                        @this.call('submitReport', data);
-                    });
-                });
-
-                // بستن مودال با رویداد
-                Livewire.on('close-modal', () => {
-                    console.log('Close modal event received');
-                    modals.forEach(modalElement => {
-                        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                        if (modalInstance) {
-                            modalInstance.hide();
-                            setTimeout(() => cleanupModal(modalElement), 300);
-                        }
-                    });
-                });
-
-                // نمایش مودال خطا
-                Livewire.on('show-error-modal', (event) => {
-                    console.log('Show error modal event received', event);
-                    const errors = event.detail?.errors || [];
-                    const userId = event.detail?.userId;
-                    if (userId) {
-                        const errorContainer = document.getElementById('errorMessages' + userId);
-                        if (errorContainer) {
-                            errorContainer.innerHTML = errors.map(error => `<p>${error}</p>`).join('');
-                        }
-                        const reportModal = bootstrap.Modal.getInstance(document.getElementById('reportUserModal' + userId));
-                        if (reportModal) {
-                            reportModal.hide();
-                        }
-                        const errorModal = new bootstrap.Modal(document.getElementById('reportErrorModal' + userId));
-                        errorModal.show();
-                    }
-                });
-
-                // وقتی Livewire DOM رو آپدیت می‌کنه
-                Livewire.on('morph.updated', () => {
-                    console.log('Livewire updated DOM');
-                    modals.forEach(modalElement => {
-                        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                        if (modalInstance && modalElement.classList.contains('show')) {
-                            console.log('Keeping modal open after Livewire update: ' + modalElement.id);
-                            modalInstance.show();
-                        }
-                    });
-                });
-
-                // رویدادهای بلاک و آنبلاک
-                Livewire.on('user-blocked', () => {
-                    console.log('User blocked event received');
-                });
-
-                Livewire.on('user-unblocked', () => {
-                    console.log('User unblocked event received');
-                });
-
-                // موفقیت گزارش
-                Livewire.on('report-success', (event) => {
-                    console.log('Report success event received', event);
-                    const userId = event.detail?.userId;
-                    if (userId) {
-                        const reportModal = bootstrap.Modal.getInstance(document.getElementById('reportUserModal' + userId));
-                        if (reportModal) {
-                            reportModal.hide();
-                            setTimeout(() => cleanupModal(document.getElementById('reportUserModal' + userId)), 300);
-                        }
-                    }
+                window.addEventListener('close-report-modal', () => {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('reportUserModal{{ $user->id }}'));
+                    modal?.hide();
                 });
             });
         </script>
@@ -290,12 +178,10 @@
 
         .status-indicator.online {
             background-color: #28a745;
-            /* سبز برای آنلاین */
         }
 
         .status-indicator.offline {
             background-color: #6c757d;
-            /* خاکستری برای آفلاین */
         }
     </style>
 </div>

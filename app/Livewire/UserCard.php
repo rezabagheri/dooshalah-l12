@@ -43,7 +43,6 @@ class UserCard extends Component
     /** @var string The reason for reporting the user */
     public $reportReason = '';
 
-    public $showModal = false;
     /** @var string The description for reporting the user */
     public $reportDescription = '';
 
@@ -222,76 +221,13 @@ class UserCard extends Component
         }
     }
 
-    public function blockUser(): void
-    {
-        if (config('app.debug')) {
-            Log::info('BlockUser method called', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
-        }
-
-        if (!$this->hasFeatureAccess('block_user')) {
-            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to block users.');
-            return;
-        }
-
-        // if ($this->isBlocked) {
-        //     $this->dispatch('toast-message', [
-        //         'type' => 'warning',
-        //         'message' => 'This user is already blocked!',
-        //     ]);
-        //     return;
-        // }
-
-        if (config('app.debug')) {
-            Log::info('Attempting to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
-        }
-
-        $blocked = Block::create([
-            'user_id' => auth()->user()->id,
-            'target_id' => $this->user->id,
-        ]);
-
-        if ($blocked) {
-            if (config('app.debug')) {
-                Log::info('User blocked successfully', ['block_id' => $blocked->id]);
-            }
-            $this->dispatch('toast-message', [
-                'type' => 'success',
-                'message' => 'User blocked successfully!',
-            ]);
-        } else {
-            if (config('app.debug')) {
-                Log::error('Failed to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
-            }
-            $this->dispatch('toast-message', [
-                'type' => 'error',
-                'message' => 'Failed to block user. Please try again.',
-            ]);
-            return;
-        }
-        // if ($blocked) {
-        //     if (config('app.debug')) {
-        //         Log::info('User blocked successfully', ['block_id' => $blocked->id]);
-        //     }
-        // } else {
-        //     Log::error('Failed to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
-        // }
-
-        if ($this->friendship) {
-            $this->friendship->delete();
-            Log::info('Friendship deleted due to block', ['friendship_id' => $this->friendship->id]);
-        }
-
-        $this->dispatch('user-blocked');
-        //$this->dispatch('test-blocked');
-        $this->checkRelationship();
-    }
-
-
+    /**
+     * Block the displayed user (alternative method).
+     *
+     * @return void
+     */
     public function block(): void
     {
-        //Log::info('Block method called', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
-        //$this->dispatch('user-blocked');
-
         Log::info('Block method called', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
 
         if (!$this->hasFeatureAccess('block_user')) {
@@ -323,6 +259,59 @@ class UserCard extends Component
     }
 
     /**
+     * Block the displayed user with additional feedback.
+     *
+     * @return void
+     */
+    public function blockUser(): void
+    {
+        if (config('app.debug')) {
+            Log::info('BlockUser method called', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+        }
+
+        if (!$this->hasFeatureAccess('block_user')) {
+            redirect()->route('plans.upgrade')->with('error', 'Upgrade your plan to block users.');
+            return;
+        }
+
+        if (config('app.debug')) {
+            Log::info('Attempting to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+        }
+
+        $blocked = Block::create([
+            'user_id' => auth()->user()->id,
+            'target_id' => $this->user->id,
+        ]);
+
+        if ($blocked) {
+            if (config('app.debug')) {
+                Log::info('User blocked successfully', ['block_id' => $blocked->id]);
+            }
+            $this->dispatch('toast-message', [
+                'type' => 'success',
+                'message' => 'User blocked successfully!',
+            ]);
+        } else {
+            if (config('app.debug')) {
+                Log::error('Failed to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+            }
+            $this->dispatch('toast-message', [
+                'type' => 'error',
+                'message' => 'Failed to block user. Please try again.',
+            ]);
+            return;
+        }
+
+        if ($this->friendship) {
+            $this->friendship->delete();
+            Log::info('Friendship deleted due to block', ['friendship_id' => $this->friendship->id]);
+        }
+
+        $this->dispatch('user-blocked');
+        $this->checkRelationship();
+    }
+
+    /**
      * Unblock the displayed user.
      *
      * @return void
@@ -341,43 +330,51 @@ class UserCard extends Component
         }
     }
 
-
-
-    public function submitReport($data): void
+    /**
+     * Open the report modal for the displayed user.
+     *
+     * @return void
+     */
+    public function openReportModal(): void
     {
+        $this->reportReason = '';
+        $this->reportDescription = '';
+        $this->dispatch('open-report-modal');
+    }
+
+    /**
+     * Submit a report against the displayed user.
+     *
+     * @return void
+     */
+    public function submitReport(): void
+    {
+        $this->validate();
+
         Log::info('submitReport called', [
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,
-            'reason' => $data['reportReason'],
-            'description' => $data['reportDescription'],
+            'reason' => $this->reportReason,
+            'description' => $this->reportDescription,
         ]);
-
-        $validator = \Illuminate\Support\Facades\Validator::make($data, [
-            'reportReason' => 'required|string|max:255',
-            'reportDescription' => 'required|string|min:10|max:1000',
-        ]);
-
-        if ($validator->fails()) {
-            Log::info('Validation failed', ['errors' => $validator->errors()->all()]);
-            $this->dispatch('show-error-modal', [
-                'errors' => $validator->errors()->all(),
-                'userId' => $this->user->id,
-            ]);
-            return;
-        }
 
         $report = Report::create([
             'user_id' => auth()->user()->id,
             'target_id' => $this->user->id,
-            'report' => $data['reportReason'],
-            'description' => $data['reportDescription'],
+            'report' => $this->reportReason,
+            'description' => $this->reportDescription,
             'status' => FriendshipStatus::Pending->value,
             'severity' => Severity::Medium->value,
         ]);
 
         Log::info('Report created', ['report_id' => $report->id]);
-        $this->dispatch('report-success', ['userId' => $this->user->id]);
+        $this->dispatch('close-report-modal');
+        $this->dispatch('toast-message', [
+            'type' => 'success',
+            'message' => 'Report submitted successfully!',
+        ]);
     }
+
     /**
      * Redirect to the chat page with the displayed user.
      *
@@ -400,12 +397,18 @@ class UserCard extends Component
      */
     public function render()
     {
-        $visibleInterests = UserAnswer::where('user_id', $this->user->id)->join('questions', 'user_answers.question_id', '=', 'questions.id')->where('questions.is_visible', true)->select('user_answers.*')->orderByDesc('questions.weight')->take(4)->with('question')->get()->map(
-            fn($answer) => [
+        $visibleInterests = UserAnswer::where('user_id', $this->user->id)
+            ->join('questions', 'user_answers.question_id', '=', 'questions.id')
+            ->where('questions.is_visible', true)
+            ->select('user_answers.*')
+            ->orderByDesc('questions.weight')
+            ->take(4)
+            ->with('question')
+            ->get()
+            ->map(fn($answer) => [
                 'label' => $answer->question->answer_label,
                 'value' => is_array($answer->answer) ? implode(', ', $answer->answer) : $answer->answer,
-            ],
-        );
+            ]);
 
         return view('livewire.user-card', [
             'user' => $this->user,
