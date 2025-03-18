@@ -20,7 +20,7 @@ new class extends Component {
         font-src 'self' https://fonts.gstatic.com;
         worker-src 'self' https://www.gstatic.com;
         connect-src 'self' https://*.firebaseio.com wss://*.firebaseio.com https://firebaseinstallations.googleapis.com https://fcm.googleapis.com https://fcmregistrations.googleapis.com;
-        img-src 'self' data:;
+        img-src 'self' data: https://flagcdn.com;
     ">
 
     <title>{{ $page_title ?? 'Dooshalah' }}</title>

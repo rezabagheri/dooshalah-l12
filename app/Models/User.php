@@ -98,6 +98,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * Check if the user is online.
+     *
+     * @return bool
+     */
+    public function isOnline(): bool
+    {
+        return $this->last_seen && now()->diffInMinutes($this->last_seen) <= 5;
+    }
+    /**
      * Get the country where the user was born.
      *
      * @return BelongsTo

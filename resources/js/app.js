@@ -78,4 +78,15 @@ document.addEventListener('livewire:init', () => {
         const modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
         modal.hide();
     });
+
+    // مدیریت مودال تماس (Contact Modal)
+    Livewire.on('open-contact-modal', () => {
+        const modal = new bootstrap.Modal(document.getElementById('contactModal'));
+        modal.show();
+    });
+
+    Livewire.on('close-contact-modal', () => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
+        if (modal) modal.hide();
+    });
 });

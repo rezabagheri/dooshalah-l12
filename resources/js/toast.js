@@ -6,85 +6,21 @@ export function showToast(message, type) {
 }
 
 export function initializeToastListeners() {
-    Livewire.on('friendship-request-sent', () => {
-        showToast('Friendship request sent successfully', 'success');
+    // رویداد عمومی برای همه Toast‌ها
+    Livewire.on('show-toast', (event) => {
+        console.log('Show toast received:', event);
+        const data = event[0]; // چون Livewire داده رو تو آرایه می‌فرسته
+        showToast(data.message, data.type);
     });
 
-    Livewire.on('friendship-accepted', () => {
-        showToast('Friendship accepted', 'success');
-    });
-
-    Livewire.on('friendship-rejected', () => {
-        showToast('Friendship rejected', 'warning');
-    });
-
-    Livewire.on('friendship-cancelled', () => {
-        showToast('Friendship request cancelled', 'info');
-    });
-
-    Livewire.on('friendship-removed', () => {
-        showToast('Friend removed', 'info');
-    });
-
-    Livewire.on('user-blocked', () => {
-        showToast('User blocked', 'warning');
-    });
-
-    Livewire.on('user-unblocked', () => {
-        showToast('User unblocked', 'success');
-    });
-
-    Livewire.on('user-reported', () => {
-        showToast('User reported', 'danger');
-    });
-
-    Livewire.on('show-delete-modal', () => {
-        console.log('Show delete modal triggered');
-        const modal = new window.bootstrap.Modal(document.getElementById('deleteModal'));
-        modal.show();
-    });
-
-    Livewire.on('close-delete-modal', () => {
-        console.log('Close delete modal triggered');
-        const modalElement = document.getElementById('deleteModal');
-        const modal = window.bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-            modal.hide();
-        }
-    });
-
-    Livewire.on('photo-uploaded', () => {
-        showToast('Photo uploaded successfully', 'success');
-    });
-
-    Livewire.on('photo-deleted', () => {
-        showToast('Photo deleted successfully', 'success');
-    });
-
-    Livewire.on('profile-picture-updated', () => {
-        showToast('Profile picture updated successfully', 'success');
-    });
-
+    // رویدادهای خاص که نیاز به منطق اضافی دارن
     Livewire.on('profile-updated', (event) => {
-        showToast(`Profile updated successfully for ${event.name}`, 'success');
+        const data = event[0];
+        showToast(`Profile updated successfully for ${data.name}`, 'success');
     });
 
-    Livewire.on('verification-link-sent', () => {
-        showToast('A new verification link has been sent to your email address.', 'info');
-    });
-
-    Livewire.on('password-updated', () => {
-        showToast('Password updated successfully', 'success');
-    });
-
-    Livewire.on('interests-updated', () => {
-        showToast('Your interests have been updated successfully', 'success');
-    });
-
-    Livewire.on('error', (message) => {
-        showToast(message, 'danger');
-    });
-
-    Livewire.on('messageReceived', () => {
+    Livewire.on('status-updated', (event) => {
+        const data = event[0];
+        showToast(`Status updated to "${data.status}" for ${data.name}`, 'success');
     });
 }

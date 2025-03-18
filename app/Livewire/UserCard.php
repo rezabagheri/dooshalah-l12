@@ -52,12 +52,6 @@ class UserCard extends Component
         'reportDescription' => 'required|string|min:10|max:1000',
     ];
 
-    /**
-     * Mount the component with the specified user.
-     *
-     * @param User $user The user to display
-     * @return void
-     */
     public function mount(User $user): void
     {
         $this->user = $user;
@@ -65,11 +59,6 @@ class UserCard extends Component
         $this->calculateMatchPercentage();
     }
 
-    /**
-     * Check the relationship (friendship or block) between the current user and the displayed user.
-     *
-     * @return void
-     */
     private function checkRelationship(): void
     {
         $currentUser = auth()->user();
@@ -85,11 +74,6 @@ class UserCard extends Component
         $this->block = Block::where('user_id', $currentUser->id)->where('target_id', $this->user->id)->first();
     }
 
-    /**
-     * Calculate the match percentage between the current user and the displayed user.
-     *
-     * @return void
-     */
     private function calculateMatchPercentage(): void
     {
         $this->matchPercentage =
@@ -98,11 +82,6 @@ class UserCard extends Component
                 ->value('match_score') ?? 0;
     }
 
-    /**
-     * Send a friendship request to the displayed user.
-     *
-     * @return void
-     */
     public function sendFriendshipRequest(): void
     {
         if (!$this->hasFeatureAccess('send_request')) {
@@ -128,15 +107,13 @@ class UserCard extends Component
             'priority' => 2,
         ]);
 
-        $this->dispatch('friendship-request-sent');
+        $this->dispatch('show-toast', [
+            'message' => 'Friendship request sent successfully',
+            'type' => 'success',
+        ]);
         $this->checkRelationship();
     }
 
-    /**
-     * Accept a friendship request from the displayed user.
-     *
-     * @return void
-     */
     public function acceptFriendship(): void
     {
         if (!$this->hasFeatureAccess('accept_request')) {
@@ -159,16 +136,14 @@ class UserCard extends Component
                 'priority' => 2,
             ]);
 
-            $this->dispatch('friendship-accepted');
+            $this->dispatch('show-toast', [
+                'message' => 'Friendship accepted',
+                'type' => 'success',
+            ]);
             $this->checkRelationship();
         }
     }
 
-    /**
-     * Reject a friendship request from the displayed user.
-     *
-     * @return void
-     */
     public function rejectFriendship(): void
     {
         if (!$this->hasFeatureAccess('accept_request')) {
@@ -178,16 +153,14 @@ class UserCard extends Component
 
         if ($this->friendship && $this->friendship->user_id === $this->user->id) {
             $this->friendship->update(['status' => FriendshipStatus::Rejected->value]);
-            $this->dispatch('friendship-rejected');
+            $this->dispatch('show-toast', [
+                'message' => 'Friendship rejected',
+                'type' => 'warning',
+            ]);
             $this->checkRelationship();
         }
     }
 
-    /**
-     * Cancel a sent friendship request.
-     *
-     * @return void
-     */
     public function cancelFriendship(): void
     {
         if (!$this->hasFeatureAccess('send_request')) {
@@ -197,16 +170,14 @@ class UserCard extends Component
 
         if ($this->friendship && $this->friendship->user_id === auth()->user()->id) {
             $this->friendship->delete();
-            $this->dispatch('friendship-cancelled');
+            $this->dispatch('show-toast', [
+                'message' => 'Friendship request cancelled',
+                'type' => 'info',
+            ]);
             $this->checkRelationship();
         }
     }
 
-    /**
-     * Remove the displayed user from friends list.
-     *
-     * @return void
-     */
     public function unfriend(): void
     {
         if (!$this->hasFeatureAccess('remove_friend')) {
@@ -216,16 +187,14 @@ class UserCard extends Component
 
         if ($this->friendship && $this->friendship->status === FriendshipStatus::Accepted) {
             $this->friendship->delete();
-            $this->dispatch('friendship-removed');
+            $this->dispatch('show-toast', [
+                'message' => 'Friend removed',
+                'type' => 'info',
+            ]);
             $this->checkRelationship();
         }
     }
 
-    /**
-     * Block the displayed user (alternative method).
-     *
-     * @return void
-     */
     public function block(): void
     {
         Log::info('Block method called', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
@@ -245,24 +214,25 @@ class UserCard extends Component
 
         if ($blocked) {
             Log::info('User blocked successfully', ['block_id' => $blocked->id]);
+            if ($this->friendship) {
+                $this->friendship->delete();
+                Log::info('Friendship deleted due to block', ['friendship_id' => $this->friendship->id]);
+            }
+            $this->dispatch('show-toast', [
+                'message' => 'User blocked',
+                'type' => 'warning',
+            ]);
         } else {
             Log::error('Failed to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
+            $this->dispatch('show-toast', [
+                'message' => 'Failed to block user',
+                'type' => 'danger',
+            ]);
         }
 
-        if ($this->friendship) {
-            $this->friendship->delete();
-            Log::info('Friendship deleted due to block', ['friendship_id' => $this->friendship->id]);
-        }
-
-        $this->dispatch('user-blocked');
         $this->checkRelationship();
     }
 
-    /**
-     * Block the displayed user with additional feedback.
-     *
-     * @return void
-     */
     public function blockUser(): void
     {
         if (config('app.debug')) {
@@ -287,35 +257,28 @@ class UserCard extends Component
             if (config('app.debug')) {
                 Log::info('User blocked successfully', ['block_id' => $blocked->id]);
             }
-            $this->dispatch('toast-message', [
-                'type' => 'success',
+            if ($this->friendship) {
+                $this->friendship->delete();
+                Log::info('Friendship deleted due to block', ['friendship_id' => $this->friendship->id]);
+            }
+            $this->dispatch('show-toast', [
                 'message' => 'User blocked successfully!',
+                'type' => 'success',
             ]);
         } else {
             if (config('app.debug')) {
                 Log::error('Failed to block user', ['user_id' => auth()->user()->id, 'target_id' => $this->user->id]);
             }
-            $this->dispatch('toast-message', [
-                'type' => 'error',
+            $this->dispatch('show-toast', [
                 'message' => 'Failed to block user. Please try again.',
+                'type' => 'danger',
             ]);
             return;
         }
 
-        if ($this->friendship) {
-            $this->friendship->delete();
-            Log::info('Friendship deleted due to block', ['friendship_id' => $this->friendship->id]);
-        }
-
-        $this->dispatch('user-blocked');
         $this->checkRelationship();
     }
 
-    /**
-     * Unblock the displayed user.
-     *
-     * @return void
-     */
     public function unblock(): void
     {
         if (!$this->hasFeatureAccess('unblock_user')) {
@@ -325,16 +288,14 @@ class UserCard extends Component
 
         if ($this->block) {
             $this->block->delete();
-            $this->dispatch('user-unblocked');
+            $this->dispatch('show-toast', [
+                'message' => 'User unblocked',
+                'type' => 'success',
+            ]);
             $this->checkRelationship();
         }
     }
 
-    /**
-     * Open the report modal for the displayed user.
-     *
-     * @return void
-     */
     public function openReportModal(): void
     {
         $this->reportReason = '';
@@ -342,11 +303,6 @@ class UserCard extends Component
         $this->dispatch('open-report-modal');
     }
 
-    /**
-     * Submit a report against the displayed user.
-     *
-     * @return void
-     */
     public function submitReport(): void
     {
         $this->validate();
@@ -369,17 +325,12 @@ class UserCard extends Component
 
         Log::info('Report created', ['report_id' => $report->id]);
         $this->dispatch('close-report-modal');
-        $this->dispatch('toast-message', [
-            'type' => 'success',
+        $this->dispatch('show-toast', [
             'message' => 'Report submitted successfully!',
+            'type' => 'success',
         ]);
     }
 
-    /**
-     * Redirect to the chat page with the displayed user.
-     *
-     * @return void
-     */
     public function startChat(): void
     {
         if (!$this->hasFeatureAccess('use_chat')) {
@@ -390,11 +341,6 @@ class UserCard extends Component
         redirect()->route('chat', ['user' => $this->user->id]);
     }
 
-    /**
-     * Render the user card view.
-     *
-     * @return \Illuminate\View\View
-     */
     public function render()
     {
         $visibleInterests = UserAnswer::where('user_id', $this->user->id)
