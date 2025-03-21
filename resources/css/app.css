@@ -2,6 +2,7 @@
 @import 'bootstrap-icons/font/bootstrap-icons.scss';
 @import 'admin-lte/dist/css/adminlte.css';
 @import 'overlayscrollbars/styles/overlayscrollbars.css';
+@import './auth.css';
 @import './chat.css';
 
 
@@ -112,4 +113,129 @@ body {
 
 .emoji:hover {
     transform: scale(1.2);
+}
+
+
+/* استایل پایه برای Badge */
+.badge {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 4px;
+    color: #fff; /* متن سفید پیش‌فرض */
+}
+
+/* Badge شفاف */
+.badge-transparent {
+    background-color: rgba(0, 0, 0, 0.3); /* پس‌زمینه پیش‌فرض شفاف */
+    color: #fff; /* متن کاملاً واضح */
+}
+
+/* رنگ‌ها با شفافیت */
+.bg-success.badge-transparent {
+    background-color: rgba(40, 167, 69, 0.3); /* سبز شفاف برای Profile */
+}
+
+.bg-primary.badge-transparent {
+    background-color: rgba(0, 123, 255, 0.3); /* آبی شفاف برای Approved */
+}
+
+.bg-warning.badge-transparent {
+    background-color: rgba(255, 193, 7, 0.3); /* زرد شفاف برای Not Approved */
+    color: #212529; /* متن تیره برای خوانایی */
+}
+
+/* بقیه استایل‌ها */
+.card-img-top {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-img-top img {
+    max-height: 200px;
+    width: 100%;
+    object-fit: contain;
+}
+
+.card-hover-effect {
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.card-hover-effect:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-not-approved {
+    opacity: 0.8;
+}
+.card-not-approved:hover {
+    opacity: 1;
+}
+
+
+/* Modal style show */
+/* استایل فلش‌ها */
+.hover-opacity-100:hover {
+    opacity: 1 !important; /* موقع هاور کاملاً واضح بشه */
+}
+
+/* تنظیم عکس تو Modal */
+.modal-body img {
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* استایل پایه برای Badge */
+.badge {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 4px;
+    color: #fff;
+}
+
+/* Badge شفاف */
+.badge-transparent {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+.bg-success.badge-transparent {
+    background-color: rgba(40, 167, 69, 0.3); /* سبز شفاف */
+}
+
+.bg-primary.badge-transparent {
+    background-color: rgba(0, 123, 255, 0.3); /* آبی شفاف */
+}
+
+.bg-warning.badge-transparent {
+    background-color: rgba(255, 193, 7, 0.3); /* زرد شفاف */
+    color: #212529;
+}
+
+/* بقیه استایل‌ها */
+.card-img-top {
+    position: relative;
+    overflow: hidden;
+}
+
+.card-img-top img {
+    max-height: 200px;
+    width: 100%;
+    object-fit: contain;
+}
+
+.card-hover-effect {
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.card-hover-effect:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-not-approved {
+    opacity: 0.8;
+}
+.card-not-approved:hover {
+    opacity: 1;
 }

@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
     dropdownElementList.forEach(dropdown => new window.bootstrap.Dropdown(dropdown));
 
-    // فعال کردن OverlayScrollbars برای سایدبار
     const sidebar = document.querySelector('.sidebar-wrapper');
     if (sidebar) {
         OverlayScrollbars(sidebar, {
@@ -68,18 +67,16 @@ document.addEventListener('livewire:init', () => {
         showToast(payload.notification.body, 'success');
     });
 
-    // مدیریت مودال با Livewire
-    window.addEventListener('open-modal', () => {
+    Livewire.on('open-modal', () => {
         const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
         modal.show();
     });
 
-    window.addEventListener('close-modal', () => {
+    Livewire.on('close-modal', () => {
         const modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
-        modal.hide();
+        if (modal) modal.hide();
     });
 
-    // مدیریت مودال تماس (Contact Modal)
     Livewire.on('open-contact-modal', () => {
         const modal = new bootstrap.Modal(document.getElementById('contactModal'));
         modal.show();
@@ -88,5 +85,17 @@ document.addEventListener('livewire:init', () => {
     Livewire.on('close-contact-modal', () => {
         const modal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
         if (modal) modal.hide();
+    });
+
+    Livewire.on('show-image-modal', () => {
+        console.log('Show image modal event received');
+        const modalElement = document.getElementById('imageModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            console.log('Modal opened successfully');
+        } else {
+            console.error('Modal element not found');
+        }
     });
 });

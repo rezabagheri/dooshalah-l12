@@ -11,7 +11,7 @@
         <div class="input-group mb-3">
             <input type="email" name="email" wire:model="email" class="form-control @error('email') is-invalid @enderror" placeholder="Email" required autofocus>
             <div class="input-group-text">
-                <span class="fas fa-envelope"></span>
+                <i class="bi bi-envelope"></i> <!-- جایگزین fas fa-envelope -->
             </div>
             @error('email')
                 <span class="invalid-feedback">{{ $message }}</span>
@@ -20,7 +20,7 @@
         <div class="input-group mb-3">
             <input type="password" name="password" wire:model="password" class="form-control @error('password') is-invalid @enderror" placeholder="Password" required>
             <div class="input-group-text">
-                <span class="fas fa-lock"></span>
+                <i class="bi bi-lock"></i> <!-- جایگزین fas fa-lock -->
             </div>
             @error('password')
                 <span class="invalid-feedback">{{ $message }}</span>
@@ -36,26 +36,25 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <button type="submit" class="btn btn-primary btn-block">{{ __('Log in') }}</button>
+                <button type="submit" class="btn btn-primary w-100">{{ __('Log in') }}</button> <!-- تمام‌عرض -->
             </div>
         </div>
     </form>
 
-    <p class="mb-1">
+    <p class="mb-1 text-center"> <!-- وسط‌چین -->
         @if (Route::has('password.request'))
             <a href="{{ route('password.request') }}">{{ __('Forgot your password?') }}</a>
         @endif
     </p>
-    <p class="mb-0">
+    <p class="mb-0 text-center"> <!-- وسط‌چین -->
         @if (Route::has('register'))
             <a href="{{ route('register') }}" class="text-center">{{ __('Register a new membership') }}</a>
         @endif
     </p>
 
-    <button wire:click="toggleDarkMode" class="btn btn-secondary mt-3">Toggle Dark Mode</button>
-
+    <!-- موقتاً کامنت شده -->
+    {{-- <button wire:click="toggleDarkMode" class="btn btn-secondary mt-3">Toggle Dark Mode</button> --}}
 </div>
-
 
 <script>
     document.addEventListener('livewire:init', () => {

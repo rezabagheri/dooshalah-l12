@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\FeatureMiddleware;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\UpdateLastSeen;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,18 +21,24 @@ use Illuminate\Foundation\Configuration\Middleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php', // اضافه کردن فایل api.php
-        apiPrefix: 'api', // پیشوند api برای روت‌های API
+        api: __DIR__.'/../routes/api.php',
+        apiPrefix: 'api',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // اضافه کردن به گروه web
+        $middleware->web(append: [
+            UpdateLastSeen::class,
+        ]);
+
         // ثبت Middlewareها به‌عنوان alias
         $middleware->alias([
             'role' => RoleMiddleware::class,
             'feature' => FeatureMiddleware::class,
+            'update.last.seen' => UpdateLastSeen::class, // اختیاری، برای استفاده دستی
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // تنظیمات استثناها، فعلاً خالی
+        //
     })->create();

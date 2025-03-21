@@ -32,6 +32,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $password_confirmation = '';
 
     public string $bodyClass = 'login-page bg-body-secondary';
+    public string $boxClass = 'register-box';
 
     public function register(): void
     {
@@ -104,6 +105,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {
         return view('auth.register')->layout('components.layouts.auth', [
             'bodyClass' => $this->bodyClass,
+            'boxClass' => $this->boxClass,
         ]);
     }
 }; ?>

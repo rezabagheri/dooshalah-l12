@@ -1,5 +1,5 @@
 <?php
-$bodyClass = 'layout-fixed sidebar-expand-lg sidebar-mini bg-body-tertiary';
+$bodyClass = 'layout-fixed fixed-header fixed-footer sidebar-expand-lg sidebar-mini bg-body-tertiary';
 
 ?>
 

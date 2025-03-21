@@ -1,9 +1,8 @@
-<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="light">
     <!--begin::Sidebar Brand-->
     <div class="sidebar-brand">
         <a class="brand-link" href="{{ url('/') }}">
-            <img src="/dist/assets/img/logo.svg" alt="Dooshalah" class="brand-image opacity-75 shadow">
-            <span class="brand-text fw-light">My App</span>
+            <img src="{{ asset('dist/assets/img/logo.svg') }}" alt="{{ config('app.name') }}" class="brand-image opacity-75 shadow">
         </a>
     </div>
     <!--end::Sidebar Brand-->
