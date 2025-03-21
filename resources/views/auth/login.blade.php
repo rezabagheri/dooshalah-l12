@@ -1,5 +1,5 @@
 <div>
-    <p class="login-box-msg">Sign in to start your session</p>
+    <h3 class="login-box-msg">Log In</h3>
 
     @if (session('status'))
         <div class="alert alert-success text-center mb-3">

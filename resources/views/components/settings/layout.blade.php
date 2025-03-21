@@ -15,42 +15,42 @@
                 <ul class="nav nav-pills flex-column">
                     <li class="nav-item">
                         <a href="{{ route('settings.profile') }}"
-                           class="nav-link {{ request()->routeIs('settings.profile') ? 'active' : '' }}"
+                           class="nav-link {{ request()->routeIs('settings.profile') ? 'custom-active' : '' }}"
                            wire:navigate>
                             <i class="nav-icon bi bi-person"></i> Profile
                         </a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a href="{{ route('settings.password') }}"
-                           class="nav-link {{ request()->routeIs('settings.password') ? 'active' : '' }}"
+                           class="nav-link {{ request()->routeIs('settings.password') ? 'custom-active' : '' }}"
                            wire:navigate>
                             <i class="nav-icon bi bi-lock"></i> Password
                         </a>
-                    </li>
+                    </li> --}}
                     <li class="nav-item">
                         <a href="{{ route('settings.security') }}"
-                           class="nav-link {{ request()->routeIs('settings.security') ? 'active' : '' }}"
+                           class="nav-link {{ request()->routeIs('settings.security') ? 'custom-active' : '' }}"
                            wire:navigate>
                             <i class="nav-icon bi bi-shield-lock"></i> Security
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('settings.photos') }}"
-                           class="nav-link {{ request()->routeIs('settings.photos') ? 'active' : '' }}"
+                           class="nav-link {{ request()->routeIs('settings.photos') ? 'custom-active' : '' }}"
                            wire:navigate>
                             <i class="nav-icon bi bi-camera"></i> Photos
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('settings.appearance') }}"
-                           class="nav-link {{ request()->routeIs('settings.appearance') ? 'active' : '' }}"
+                           class="nav-link {{ request()->routeIs('settings.appearance') ? 'custom-active' : '' }}"
                            wire:navigate>
                             <i class="nav-icon bi bi-palette"></i> Appearance
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('settings.interests') }}"
-                           class="nav-link {{ request()->routeIs('settings.interests') ? 'active' : '' }}"
+                           class="nav-link {{ request()->routeIs('settings.interests') ? 'custom-active' : '' }}"
                            wire:navigate>
                             <i class="nav-icon bi bi-heart"></i> Interests
                         </a>
@@ -74,4 +74,6 @@
             </div>
         </div>
     </div>
+
 </div>
+

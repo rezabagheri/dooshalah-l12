@@ -42,8 +42,9 @@
             <li class="list-group-item">
                 <strong>Living Country:</strong>
                 @if($user->livingCountry)
+
                     @if($user->livingCountry->flag_image)
-                        <img src="{{ $user->bornCountry->flag_image }}" alt="{{ $user->livingCountry->name }}" style="width: 20px; height: 15px; margin-right: 5px;">
+                        <img src="{{ $user->livingCountry->flag_image }}" alt="{{ $user->livingCountry->name }}" style="width: 20px; height: 15px; margin-right: 5px;">
                     @endif
                     {{ $user->livingCountry->name }}
                 @else

@@ -87,6 +87,15 @@ document.addEventListener('livewire:init', () => {
         if (modal) modal.hide();
     });
 
+    Livewire.on('show-delete-modal', () => {
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+    });
+    Livewire.on('close-delete-modal', () => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+        modal?.hide();
+    });
+
     Livewire.on('show-image-modal', () => {
         console.log('Show image modal event received');
         const modalElement = document.getElementById('imageModal');

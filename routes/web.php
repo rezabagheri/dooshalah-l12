@@ -33,14 +33,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::redirect('/settings', '/settings/profile');
-    Route::get('/settings/security', \App\Livewire\Settings\Security::class)->middleware('auth')->name('settings.security');
-
+    Route::get('/settings/security', \App\Livewire\Settings\Security::class)->name('settings.security');
+    Route::get('/settings/profile', \App\Livewire\Settings\Profile::class)->name('settings.profile');
+    Route::get('/settings/appearance', \App\Livewire\Settings\Appearance::class)->name('settings.appearance');
+    Route::get('/settings/photos', \App\Livewire\Settings\Photos::class)->name('settings.photos');
     // تنظیمات (با Volt)
-    Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
+    //Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
-    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
-    Volt::route('settings/security', 'settings.security')->name('settings.security');
-    Volt::route('settings/photos', 'settings.photos')->name('settings.photos');
+    //Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    //Volt::route('settings/security', 'settings.security')->name('settings.security');
+    //Volt::route('settings/photos', 'settings.photos')->name('settings.photos');
     Route::get('/settings/interests', Interests::class)->name('settings.interests');
 
     // پیام‌ها (با Volt)

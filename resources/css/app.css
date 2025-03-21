@@ -239,3 +239,15 @@ body {
 .card-not-approved:hover {
     opacity: 1;
 }
+
+
+.nav-link.custom-active {
+    background-color: #6c757d; /* خاکستری تیره ملایم */
+    color: #ffffff; /* متن سفید برای کنتراست */
+    border-top-left-radius: 0; /* گوشه بالا-چپ صاف */
+    border-bottom-left-radius: 0; /* گوشه پایین-چپ صاف */
+}
+.nav-link.custom-active:hover {
+    background-color: #5a6268; /* کمی تیره‌تر برای هاور */
+    color: #ffffff;
+}
