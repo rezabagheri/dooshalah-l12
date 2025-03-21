@@ -1,5 +1,5 @@
 <div class="register-box">
-    <p class="login-box-msg fw-bold">Create a new account</p> <!-- برجسته شده -->
+    <p class="login-box-msg fw-bold">Create a new account</p>
 
     @if (session('status'))
         <div class="alert alert-success text-center mb-3">
@@ -65,11 +65,11 @@
         <div class="row mb-3">
             <div class="col-md-6">
                 <div class="input-group">
-                    <input type="date" name="birth_date" wire:model="birth_date" class="form-control @error('birth_date') is-invalid @enderror" id="birth_date" placeholder="Birth date" required>
+                    <input type="date" name="birth_date" wire:model="birth_date" class="form-control @error('birth_date') is-invalid @enderror" id="birth_date" placeholder="Birth date" required max="{{ now()->subYears(18)->toDateString() }}">
                     <div class="input-group-text"><i class="bi bi-calendar"></i></div>
                     @error('birth_date') <span class="invalid-feedback">{{ $message }}</span> @enderror
                 </div>
-                <small class="form-text text-muted fs-8">Required, must be a date before today.</small>
+                <small class="form-text text-muted fs-8">Required, must be at least 18 years old.</small>
             </div>
             <div class="col-md-6">
                 <div class="input-group">
@@ -162,31 +162,45 @@
         <!-- دکمه ثبت‌نام -->
         <div class="row">
             <div class="col-12">
-                <button type="submit" class="btn btn-primary w-100 mb-3">{{ __('Create account') }}</button> <!-- تمام‌عرض -->
+                <button type="submit" class="btn btn-primary w-100 mb-3">{{ __('Create account') }}</button>
             </div>
         </div>
     </form>
 
     <!-- لینک ورود -->
     <div class="row">
-        <div class="col-12 text-center"> <!-- وسط‌چین -->
+        <div class="col-12 text-center">
             @if (Route::has('login'))
                 <p class="mb-0">
                     <a href="{{ route('login') }}">{{ __('Already have an account? Log in') }}</a>
                 </p>
             @endif
         </div>
-        <!-- موقتاً کامنت شده -->
-        {{-- <div class="col-6 text-right">
-            <button wire:click="toggleDarkMode" class="btn btn-secondary btn-sm">{{ __('Toggle Dark Mode') }}</button>
-        </div> --}}
     </div>
-</div>
 
-<script>
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('updateBodyClass', (bodyClass) => {
-            document.body.className = bodyClass;
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const setupBirthDateValidation = () => {
+                const birthDateInput = document.getElementById('birth_date');
+                if (birthDateInput) {
+                    birthDateInput.addEventListener('invalid', function (e) {
+                        this.setCustomValidity('You must be at least 18 years old to register.');
+                    });
+
+                    birthDateInput.addEventListener('input', function () {
+                        this.setCustomValidity('');
+                    });
+
+                    birthDateInput.addEventListener('change', function () {
+                        @this.set('birth_date', this.value); // Use @this instead of window.Livewire.find
+                    });
+                } else {
+                    console.warn('birth_date element not found yet, retrying...');
+                    setTimeout(setupBirthDateValidation, 100); // Retry after 100ms
+                }
+            };
+
+            setupBirthDateValidation();
         });
-    });
-</script>
+    </script>
+</div>
