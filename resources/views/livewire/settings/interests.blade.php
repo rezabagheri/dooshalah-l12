@@ -30,7 +30,7 @@
                                         <input class="form-check-input" type="checkbox"
                                             @if ($isReadonly) disabled @endif
                                             onchange="updateBooleanAnswer('{{ $question['id'] }}', this)"
-                                            {{ $tempAnswers[$question['id']] === '1' ? 'checked' : '' }}>
+                                            {{ isset($tempAnswers[$question['id']]) && $tempAnswers[$question['id']] === '1' ? 'checked' : '' }}>
                                         <label class="form-check-label">Yes</label>
                                     </div>
                                 @break
@@ -56,8 +56,7 @@
                                 @break
 
                                 @case('multiple')
-                                    <select multiple wire:model.defer="tempAnswers.{{ $question['id'] }}" class="form-control"
-                                        @if ($isReadonly) disabled @endif
+                                    <select multiple class="form-control" @if ($isReadonly) disabled @endif
                                         onchange="updateMultipleAnswer('{{ $question['id'] }}', this)">
                                         @foreach ($question['options'] as $option)
                                             <option value="{{ $option['option_value'] }}"

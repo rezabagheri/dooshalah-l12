@@ -6,6 +6,7 @@ use App\Enums\Gender;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Enums\MediaStatus;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -64,7 +65,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read \Illuminate\Database\Eloquent\Collection|Friendship[] $friends Accepted friendships of the user.
  * @property-read \Illuminate\Database\Eloquent\Collection|UserAnswer[] $userAnswers Answers provided by the user.
  */
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, SoftDeletes, HasApiTokens, Notifiable;
 

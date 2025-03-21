@@ -19,6 +19,29 @@ class Interests extends Component
     {
         $this->questionsByPage = Question::with('options')->orderBy('page')->orderBy('order_in_page')->get()->groupBy('page')->toArray();
 
+        // تنظیم $currentPage به اولین صفحه موجود یا 1 اگه خالیه
+        if (!empty($this->questionsByPage)) {
+            $this->currentPage = (int) array_key_first($this->questionsByPage);
+        } else {
+            $this->currentPage = 1;
+        }
+
+        // مقداردهی اولیه به tempAnswers برای همه سوالات
+        $allQuestions = Question::all();
+        foreach ($allQuestions as $question) {
+            $defaultValue = match ($question->answer_type) {
+                'boolean' => '0', // پیش‌فرض false
+                'multiple' => [], // آرایه خالی
+                'string', 'single' => '', // رشته خالی
+                'number' => null, // یا 0 اگه ترجیح می‌دی
+                default => null,
+            };
+            $this->tempAnswers[$question->id] = $this->tempAnswers[$question->id] ?? $defaultValue;
+            $this->answers[$question->id] = $this->answers[$question->id] ?? $defaultValue;
+            $this->originalAnswers[$question->id] = $this->originalAnswers[$question->id] ?? $defaultValue;
+        }
+
+        // لود جواب‌های موجود کاربر و بازنویسی مقادیر پیش‌فرض
         $userAnswers = UserAnswer::where('user_id', Auth::id())->get()->pluck('answer', 'question_id')->toArray();
         foreach ($userAnswers as $questionId => $answer) {
             $question = Question::find($questionId);
@@ -62,11 +85,11 @@ class Interests extends Component
     {
         $question = Question::find($questionId);
         if ($question) {
-            if ($question->answer_type === 'multiple') {
-                $this->tempAnswers[$questionId] = is_array($value) ? $value : (empty($value) ? [] : [$value]);
-            } else {
-                $this->tempAnswers[$questionId] = $value;
-            }
+            $this->tempAnswers[$questionId] = $value; // مستقیم مقدار رو ست می‌کنیم
+            \Log::info('Updated temp answer', [
+                'question_id' => $questionId,
+                'value' => $value,
+            ]);
         }
     }
 
@@ -86,10 +109,7 @@ class Interests extends Component
 
     public function saveAnswers(): void
     {
-        \Log::info('Temp answers before copy', [
-            'tempAnswers' => $this->tempAnswers,
-        ]);
-
+        \Log::info('Temp answers before copy', ['tempAnswers' => $this->tempAnswers]);
         $this->answers = $this->tempAnswers;
 
         $user = Auth::user();
@@ -131,10 +151,17 @@ class Interests extends Component
                     'question_id' => $questionId,
                     'question' => $question->question,
                     'answer' => $answer,
+                    'options' => $options,
                     'type' => gettype($answer),
                 ]);
 
                 if ($question->answer_type === 'multiple') {
+                    \Log::info('Multiple question validation', [
+                        'question_id' => $questionId,
+                        'answer' => $answer,
+                        'valid_options' => $options,
+                        'invalid_items' => array_diff((array) $answer, $options),
+                    ]);
                     $this->validate(
                         [
                             "answers.$questionId" => $rules,
@@ -169,6 +196,7 @@ class Interests extends Component
             }
         }
     }
+
     public function isReadonly($questionId): bool
     {
         $question = Question::find($questionId);

@@ -9,7 +9,6 @@ use App\Mail\WelcomeMail;
 use App\Models\Country;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
@@ -34,7 +33,8 @@ class Register extends Component
     public bool $agreement = false;
     public string $bodyClass = 'login-page bg-body-secondary';
     public string $boxClass = 'register-box';
-    public bool $showPassword = false; // برای نمایش رمز
+    public bool $showPassword = false;
+    public bool $registered = false; // برای کنترل نمایش فرم یا پیام
 
     public function rules(): array
     {
@@ -83,14 +83,17 @@ class Register extends Component
 
             \Log::info('User created', ['user_id' => $user->id]);
 
-            Auth::login($user);
-            \Log::info('User logged in', ['user_id' => $user->id]);
+            // ارسال ایمیل تأیید
+            $user->sendEmailVerificationNotification();
+            \Log::info('Verification email sent to: ' . $user->email);
 
-            \Log::info('Sending welcome email to: ' . $user->email);
+            // ارسال ایمیل خوش‌آمدگویی (اختیاری)
             Mail::to($user->email)->send(new WelcomeMail($user));
             \Log::info('Welcome email sent to: ' . $user->email);
 
-            $this->redirect(route('settings.profile', absolute: false), navigate: true);
+            // موفقیت: فرم مخفی بشه و پیام نشون داده بشه
+            $this->registered = true;
+            session()->flash('status', __('Registration successful! Please check your email to verify your account.'));
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Validation failed', ['errors' => $e->errors()]);
             foreach ($e->errors() as $field => $messages) {
@@ -98,10 +101,10 @@ class Register extends Component
                     $this->addError($field, $message);
                 }
             }
-            $this->dispatch('show-toast', ['message' => 'Please check your inputs: ' . implode(', ', $e->errors()[array_key_first($e->errors())]), 'type' => 'danger']);
+            session()->flash('error', __('Please check your inputs and try again.'));
         } catch (\Exception $e) {
             \Log::error('Registration failed', ['message' => $e->getMessage()]);
-            $this->dispatch('show-toast', ['message' => 'An error occurred: ' . $e->getMessage(), 'type' => 'danger']);
+            session()->flash('error', __('An error occurred during registration. Please try again later.'));
         }
     }
 
