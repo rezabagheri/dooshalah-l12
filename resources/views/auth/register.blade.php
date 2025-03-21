@@ -143,7 +143,10 @@
         <div class="row mb-3">
             <div class="col-md-6">
                 <div class="input-group">
-                    <input type="password" name="password" wire:model="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Password" required>
+                    <input type="{{ $showPassword ? 'text' : 'password' }}" name="password" wire:model="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Password" required>
+                    <div class="input-group-text">
+                        <i class="{{ $showPassword ? 'bi bi-eye-slash' : 'bi bi-eye' }}" wire:click="togglePassword" style="cursor: pointer;"></i>
+                    </div>
                     <div class="input-group-text"><i class="bi bi-lock"></i></div>
                     @error('password') <span class="invalid-feedback">{{ $message }}</span> @enderror
                 </div>
@@ -151,7 +154,10 @@
             </div>
             <div class="col-md-6">
                 <div class="input-group">
-                    <input type="password" name="password_confirmation" wire:model="password_confirmation" class="form-control @error('password_confirmation') is-invalid @enderror" id="password_confirmation" placeholder="Confirm password" required>
+                    <input type="{{ $showPassword ? 'text' : 'password' }}" name="password_confirmation" wire:model="password_confirmation" class="form-control @error('password_confirmation') is-invalid @enderror" id="password_confirmation" placeholder="Confirm password" required>
+                    <div class="input-group-text">
+                        <i class="{{ $showPassword ? 'bi bi-eye-slash' : 'bi bi-eye' }}" wire:click="togglePassword" style="cursor: pointer;"></i>
+                    </div>
                     <div class="input-group-text"><i class="bi bi-lock"></i></div>
                     @error('password_confirmation') <span class="invalid-feedback">{{ $message }}</span> @enderror
                 </div>

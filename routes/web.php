@@ -17,6 +17,7 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/', fn() => redirect()->route('login'))->name('home');
     Route::get('/login', \App\Livewire\Auth\Login::class)->name('login');
+    Route::get('/register', \App\Livewire\Auth\Register::class)->name('register');
     //Volt::route('login', 'auth.login')->name('login');
 });
 
