@@ -159,6 +159,19 @@
             </div>
         </div>
 
+        <!-- چک‌باکس Agreement -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="form-check">
+                    <input type="checkbox" name="agreement" wire:model="agreement" class="form-check-input @error('agreement') is-invalid @enderror" id="agreement" required>
+                    <label class="form-check-label" for="agreement">
+                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#agreementModal">Terms and Conditions</a>
+                    </label>
+                    @error('agreement') <span class="invalid-feedback d-block">{{ $message }}</span> @enderror
+                </div>
+            </div>
+        </div>
+
         <!-- دکمه ثبت‌نام -->
         <div class="row">
             <div class="col-12">
@@ -178,6 +191,34 @@
         </div>
     </div>
 
+    <!-- Bootstrap Modal برای Agreement -->
+    <div class="modal fade" id="agreementModal" tabindex="-1" aria-labelledby="agreementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agreementModalLabel">Terms and Conditions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h2>Welcome to Our Platform!</h2>
+                    <p>By registering, you agree to the following terms:</p>
+                    <ul>
+                        <li><strong>Eligibility:</strong> You must be at least 18 years old to use this service.</li>
+                        <li><em>Privacy:</em> We respect your privacy and will protect your data as outlined in our <a href="#">Privacy Policy</a>.</li>
+                        <li><strong>Conduct:</strong> You agree not to use this platform for illegal activities.</li>
+                        <li><em>Content:</em> Any content you upload must comply with our community guidelines.</li>
+                    </ul>
+                    <h3>Additional Notes</h3>
+                    <p>This is a <b>sample agreement</b> and may span multiple pages. You are responsible for reading and understanding all terms before agreeing.</p>
+                    <p>For more details, contact us at <a href="mailto:support@example.com">support@example.com</a>.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const setupBirthDateValidation = () => {
@@ -192,11 +233,11 @@
                     });
 
                     birthDateInput.addEventListener('change', function () {
-                        @this.set('birth_date', this.value); // Use @this instead of window.Livewire.find
+                        @this.set('birth_date', this.value);
                     });
                 } else {
                     console.warn('birth_date element not found yet, retrying...');
-                    setTimeout(setupBirthDateValidation, 100); // Retry after 100ms
+                    setTimeout(setupBirthDateValidation, 100);
                 }
             };
 

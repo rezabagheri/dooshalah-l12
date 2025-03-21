@@ -94,6 +94,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
      */
     public string $password_confirmation = '';
 
+    public $agreement = false;
+
     /**
      * @var string CSS class for the body element
      */
@@ -133,9 +135,12 @@ new #[Layout('components.layouts.auth')] class extends Component {
                     'born_country' => ['nullable', 'exists:countries,id'],
                     'living_country' => ['nullable', 'exists:countries,id'],
                     'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+                    'agreement' => ['required', 'accepted'], // Must be checked
                 ],
                 [
                     'birth_date.before_or_equal' => 'You must be at least 18 years old to register.',
+                    'agreement.required' => 'You must agree to the Terms and Conditions.',
+                    'agreement.accepted' => 'You must agree to the Terms and Conditions.',
                 ],
             );
 
@@ -162,7 +167,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             \Log::error('Validation failed', ['errors' => $e->errors()]);
             foreach ($e->errors() as $field => $messages) {
                 foreach ($messages as $message) {
-                    $this->addError($field, $message); // Add errors to display in form
+                    $this->addError($field, $message);
                 }
             }
             $this->dispatch('show-toast', ['message' => 'Please check your inputs: ' . implode(', ', $e->errors()[array_key_first($e->errors())]), 'type' => 'danger']);
