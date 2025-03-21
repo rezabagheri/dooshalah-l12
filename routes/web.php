@@ -19,6 +19,10 @@ Route::middleware('guest')->group(function () {
     Volt::route('login', 'auth.login')->name('login');
 });
 
+Route::get('/reset-password/{token}', \App\Livewire\Auth\ResetPassword::class)
+    ->middleware('guest')
+    ->name('password.reset');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');

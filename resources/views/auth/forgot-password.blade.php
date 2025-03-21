@@ -14,7 +14,7 @@
                 placeholder="{{ __('Email Address') }}" required autofocus>
             <div class="input-group-append">
                 <div class="input-group-text">
-                    <span class="fas fa-envelope"></span>
+                    <span class="bi bi-envelope"></span>
                 </div>
             </div>
             @error('email')
@@ -24,7 +24,7 @@
 
         <div class="row">
             <div class="col-12">
-                <button type="submit" class="btn btn-primary btn-block">
+                <button type="submit" class="btn btn-primary w-100 mb-3">
                     {{ __('Email Password Reset Link') }}
                 </button>
             </div>
@@ -36,7 +36,6 @@
             {{ __('Return to Login') }}
         </a>
     </p>
-
 </div>
 
 @push('scripts')
