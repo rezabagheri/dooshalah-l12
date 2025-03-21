@@ -4,7 +4,9 @@ namespace App\Livewire\Settings;
 
 use App\Models\Question;
 use App\Models\UserAnswer;
+use App\Models\UserMatchScore;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Interests extends Component
@@ -147,21 +149,7 @@ class Interests extends Component
                     "answers.$questionId.*.in" => "One or more selected options for '{$question->question}' are invalid.",
                 ];
 
-                \Log::info('Before validation', [
-                    'question_id' => $questionId,
-                    'question' => $question->question,
-                    'answer' => $answer,
-                    'options' => $options,
-                    'type' => gettype($answer),
-                ]);
-
                 if ($question->answer_type === 'multiple') {
-                    \Log::info('Multiple question validation', [
-                        'question_id' => $questionId,
-                        'answer' => $answer,
-                        'valid_options' => $options,
-                        'invalid_items' => array_diff((array) $answer, $options),
-                    ]);
                     $this->validate(
                         [
                             "answers.$questionId" => $rules,
@@ -173,13 +161,43 @@ class Interests extends Component
                     $this->validate(["answers.$questionId" => $rules], $messages);
                 }
 
-                \Log::info('Saving answer', [
-                    'question_id' => $questionId,
-                    'answer' => $answer,
-                ]);
+                $processedAnswer = is_array($answer) ? implode(',', $answer) : $answer;
 
-                UserAnswer::updateOrCreate(['user_id' => $user->id, 'question_id' => $questionId], ['answer' => json_encode($answer)]);
+                // ذخیره تو user_answers
+                UserAnswer::updateOrCreate(
+                    ['user_id' => $user->id, 'question_id' => $questionId],
+                    ['answer' => json_encode($answer)]
+                );
+
+                // آپدیت user_answer_pivot_cache
+                DB::table('user_answer_pivot_cache')->updateOrInsert(
+                    ['user_id' => $user->id, 'question_id' => $questionId],
+                    [
+                        'answer' => $processedAnswer,
+                        'weight' => $question->weight ?? 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
             }
+
+            // محاسبه تطابق‌ها برای کاربر فعلی
+            UserMatchScore::where('user_id', $user->id)->delete();
+            DB::statement("
+                INSERT INTO user_match_scores (user_id, target_id, match_score, created_at, updated_at)
+                SELECT
+                    ?,
+                    u2.user_id AS target_id,
+                    ROUND(SUM(CASE WHEN u1.answer = u2.answer THEN u1.weight ELSE 0 END) / SUM(u1.weight) * 100, 1) AS match_score,
+                    NOW(),
+                    NOW()
+                FROM user_answer_pivot_cache u1
+                JOIN user_answer_pivot_cache u2 ON u1.question_id = u2.question_id
+                WHERE u1.user_id = ? AND u2.user_id != ?
+                GROUP BY u2.user_id
+            ", [$user->id, $user->id, $user->id]);
+
+            \Log::info('Match scores updated for user', ['user_id' => $user->id]);
 
             $this->dispatch('interests-updated');
             $this->dispatch('show-toast', [

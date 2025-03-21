@@ -22,11 +22,7 @@ class FriendsIndex extends Component
 
     public function mount(): void
     {
-        $this->activeTab = request()->routeIs('friends.suggestions') ? 'suggestions' :
-                           (request()->routeIs('friends.my-friends') ? 'my-friends' :
-                            (request()->routeIs('friends.pending') ? 'pending' :
-                             (request()->routeIs('friends.received') ? 'received' :
-                              (request()->routeIs('friends.blocked') ? 'blocked' : 'reports'))));
+        $this->activeTab = request()->routeIs('friends.suggestions') ? 'suggestions' : (request()->routeIs('friends.my-friends') ? 'my-friends' : (request()->routeIs('friends.pending') ? 'pending' : (request()->routeIs('friends.received') ? 'received' : (request()->routeIs('friends.blocked') ? 'blocked' : 'reports'))));
     }
 
     public function setTab($tab): void
@@ -53,40 +49,31 @@ class FriendsIndex extends Component
             ],
             'my-friends' => [
                 'label' => 'My Friends',
-                'users' => User::whereIn('id', Friendship::where('status', FriendshipStatus::Accepted->value)
-                    ->where(function ($query) use ($currentUser) {
-                        $query->where('user_id', $currentUser->id)
-                              ->orWhere('target_id', $currentUser->id);
-                    })
-                    ->selectRaw("IF(user_id = ?, target_id, user_id) as friend_id", [$currentUser->id])
-                    ->pluck('friend_id'))
-                    ->get(),
+                'users' => User::whereIn(
+                    'id',
+                    Friendship::where('status', FriendshipStatus::Accepted->value)
+                        ->where(function ($query) use ($currentUser) {
+                            $query->where('user_id', $currentUser->id)->orWhere('target_id', $currentUser->id);
+                        })
+                        ->selectRaw('IF(user_id = ?, target_id, user_id) as friend_id', [$currentUser->id])
+                        ->pluck('friend_id'),
+                )->get(),
             ],
             'pending' => [
                 'label' => 'Pending Requests',
-                'users' => User::whereIn('id', Friendship::where('user_id', $currentUser->id)
-                    ->where('status', FriendshipStatus::Pending->value)
-                    ->pluck('target_id'))
-                    ->get(),
+                'users' => User::whereIn('id', Friendship::where('user_id', $currentUser->id)->where('status', FriendshipStatus::Pending->value)->pluck('target_id'))->get(),
             ],
             'received' => [
                 'label' => 'Received Requests',
-                'users' => User::whereIn('id', Friendship::where('target_id', $currentUser->id)
-                    ->where('status', FriendshipStatus::Pending->value)
-                    ->pluck('user_id'))
-                    ->get(),
+                'users' => User::whereIn('id', Friendship::where('target_id', $currentUser->id)->where('status', FriendshipStatus::Pending->value)->pluck('user_id'))->get(),
             ],
             'blocked' => [
                 'label' => 'Blocked Users',
-                'users' => User::whereIn('id', Block::where('user_id', $currentUser->id)
-                    ->pluck('target_id'))
-                    ->get(),
+                'users' => User::whereIn('id', Block::where('user_id', $currentUser->id)->pluck('target_id'))->get(),
             ],
             'reports' => [
                 'label' => 'Reports',
-                'users' => User::whereIn('id', Report::where('user_id', $currentUser->id)
-                    ->pluck('target_id'))
-                    ->get(),
+                'users' => User::whereIn('id', Report::where('user_id', $currentUser->id)->pluck('target_id'))->get(),
             ],
         ];
 
@@ -103,19 +90,42 @@ class FriendsIndex extends Component
 
         $currentUserAge = $currentUser->birth_date->diffInYears(now());
 
-        return User::where('gender', $currentUser->gender === Gender::Male ? Gender::Female : Gender::Male)
+        \Log::info('Suggestions debug', [
+            'current_user_id' => $currentUser->id,
+            'current_user_age' => $currentUserAge,
+            'gender_filter' => $currentUser->gender === Gender::Male ? Gender::Female : Gender::Male,
+            'birth_date_range' => [
+                now()->subYears($currentUserAge)->toDateString(),
+                now()
+                    ->subYears($currentUserAge - 10)
+                    ->toDateString(),
+            ],
+            'excluded_ids' => $excludedIds,
+        ]);
+
+        $query = User::where('gender', $currentUser->gender === Gender::Male ? Gender::Female : Gender::Male)
             ->whereBetween('birth_date', [
-                now()->subYears($currentUserAge),
-                now()->subYears($currentUserAge - 10),
+                now()->subYears($currentUserAge)->toDateString(),
+                now()
+                    ->subYears($currentUserAge - 10)
+                    ->toDateString(),
             ])
             ->whereNotIn('users.id', $excludedIds)
             ->join('user_match_scores', function ($join) use ($currentUser) {
-                $join->on('users.id', '=', 'user_match_scores.target_id')
-                     ->where('user_match_scores.user_id', $currentUser->id);
+                $join->on('users.id', '=', 'user_match_scores.target_id')->where('user_match_scores.user_id', $currentUser->id);
             })
             ->select('users.*', 'user_match_scores.match_score as match_percentage')
             ->orderByDesc('match_score')
-            ->take($this->perPage)
-            ->get();
+            ->take($this->perPage);
+
+        $users = $query->get();
+        \Log::info('Suggestions result', [
+            'query_sql' => $query->toSql(),
+            'bindings' => $query->getBindings(),
+            'result_count' => $users->count(),
+            'results' => $users->toArray(),
+        ]);
+
+        return $users;
     }
 }
