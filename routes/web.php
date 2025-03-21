@@ -22,6 +22,8 @@ Route::middleware('guest')->group(function () {
     //Volt::route('login', 'auth.login')->name('login');
 });
 
+Route::get('/password/confirm', \App\Livewire\Auth\ConfirmPassword::class)->name('password.confirm');
+
 Route::get('/reset-password/{token}', \App\Livewire\Auth\ResetPassword::class)
     ->middleware('guest')
     ->name('password.reset');
