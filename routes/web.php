@@ -19,6 +19,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', \App\Livewire\Auth\Register::class)->name('register');
     Route::get('/password/reset', \App\Livewire\Auth\ForgotPassword::class)->name('password.request');
     Route::get('/reset-password/{token}', \App\Livewire\Auth\ResetPassword::class)->name('password.reset');
+
 });
 
 // مسیرهای تأیید (قبل از ورود کامل)
@@ -30,8 +31,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->name('dashboard');
     Route::post('/logout', fn() => auth()->logout() && redirect('/login'))->name('logout');
 
-    // تنظیمات (با Volt)
+
     Route::redirect('/settings', '/settings/profile');
+    Route::get('/settings/security', \App\Livewire\Settings\Security::class)->middleware('auth')->name('settings.security');
+
+    // تنظیمات (با Volt)
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
