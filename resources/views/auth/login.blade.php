@@ -11,16 +11,19 @@
         <div class="input-group mb-3">
             <input type="email" name="email" wire:model="email" class="form-control @error('email') is-invalid @enderror" placeholder="Email" required autofocus>
             <div class="input-group-text">
-                <i class="bi bi-envelope"></i> <!-- جایگزین fas fa-envelope -->
+                <i class="bi bi-envelope"></i>
             </div>
             @error('email')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
         </div>
         <div class="input-group mb-3">
-            <input type="password" name="password" wire:model="password" class="form-control @error('password') is-invalid @enderror" placeholder="Password" required>
+            <input type="{{ $showPassword ? 'text' : 'password' }}" name="password" wire:model="password" class="form-control @error('password') is-invalid @enderror" placeholder="Password" required>
             <div class="input-group-text">
-                <i class="bi bi-lock"></i> <!-- جایگزین fas fa-lock -->
+                <i class="{{ $showPassword ? 'bi bi-eye-slash' : 'bi bi-eye' }}" wire:click="togglePassword" style="cursor: pointer;"></i>
+            </div>
+            <div class="input-group-text">
+                <i class="bi bi-lock"></i>
             </div>
             @error('password')
                 <span class="invalid-feedback">{{ $message }}</span>
@@ -36,24 +39,21 @@
         </div>
         <div class="row">
             <div class="col-12">
-                <button type="submit" class="btn btn-primary w-100">{{ __('Log in') }}</button> <!-- تمام‌عرض -->
+                <button type="submit" class="btn btn-primary w-100">{{ __('Log in') }}</button>
             </div>
         </div>
     </form>
 
-    <p class="mb-1 text-center"> <!-- وسط‌چین -->
+    <p class="mb-1 text-center">
         @if (Route::has('password.request'))
             <a href="{{ route('password.request') }}">{{ __('Forgot your password?') }}</a>
         @endif
     </p>
-    <p class="mb-0 text-center"> <!-- وسط‌چین -->
+    <p class="mb-0 text-center">
         @if (Route::has('register'))
             <a href="{{ route('register') }}" class="text-center">{{ __('Register a new membership') }}</a>
         @endif
     </p>
-
-    <!-- موقتاً کامنت شده -->
-    {{-- <button wire:click="toggleDarkMode" class="btn btn-secondary mt-3">Toggle Dark Mode</button> --}}
 </div>
 
 <script>

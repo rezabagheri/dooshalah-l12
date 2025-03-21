@@ -16,7 +16,8 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/', fn() => redirect()->route('login'))->name('home');
-    Volt::route('login', 'auth.login')->name('login');
+    Route::get('/login', \App\Livewire\Auth\Login::class)->name('login');
+    //Volt::route('login', 'auth.login')->name('login');
 });
 
 Route::get('/reset-password/{token}', \App\Livewire\Auth\ResetPassword::class)
