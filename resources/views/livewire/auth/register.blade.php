@@ -95,12 +95,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
         ];
     }
 
+    /*
     public function toggleDarkMode(): void
     {
         $this->bodyClass = $this->bodyClass === 'login-page bg-body-secondary' ? 'login-page dark-mode' : 'login-page bg-body-secondary';
         $this->dispatch('updateBodyClass', $this->bodyClass);
     }
-
+    */
     public function render(): View
     {
         return view('auth.register')->layout('components.layouts.auth', [
