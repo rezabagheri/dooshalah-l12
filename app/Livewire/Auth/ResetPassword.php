@@ -17,6 +17,9 @@ class ResetPassword extends Component
     public string $password = '';
     public string $password_confirmation = '';
 
+    public bool $showPassword = false;
+    public bool $showPasswordConfirmation = false;
+
     public function mount(string $token): void
     {
         $this->token = $token;
@@ -50,6 +53,15 @@ class ResetPassword extends Component
 
         Session::flash('status', __($status));
         $this->redirectRoute('login', navigate: true);
+    }
+
+    public function togglePassword($field): void
+    {
+        if ($field === 'password') {
+            $this->showPassword = !$this->showPassword;
+        } elseif ($field === 'confirmation') {
+            $this->showPasswordConfirmation = !$this->showPasswordConfirmation;
+        }
     }
 
     public function render()

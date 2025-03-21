@@ -23,11 +23,21 @@
 
         <!-- Password -->
         <div class="input-group mb-3">
-            <input wire:model="password" type="password" class="form-control @error('password') is-invalid @enderror"
-                id="password" placeholder="{{ __('Password') }}" required autocomplete="new-password">
+            <input wire:model="password"
+                   type="{{ $showPassword ? 'text' : 'password' }}"
+                   class="form-control @error('password') is-invalid @enderror"
+                   id="password"
+                   placeholder="{{ __('Password') }}"
+                   required
+                   autocomplete="new-password">
             <div class="input-group-text">
                 <i class="bi bi-lock"></i>
             </div>
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    wire:click="togglePassword('password')">
+                <i class="bi {{ $showPassword ? 'bi-eye-slash' : 'bi-eye' }}"></i>
+            </button>
             @error('password')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
@@ -35,11 +45,21 @@
 
         <!-- Confirm Password -->
         <div class="input-group mb-3">
-            <input wire:model="password_confirmation" type="password" class="form-control @error('password_confirmation') is-invalid @enderror"
-                id="password_confirmation" placeholder="{{ __('Confirm Password') }}" required autocomplete="new-password">
+            <input wire:model="password_confirmation"
+                   type="{{ $showPasswordConfirmation ? 'text' : 'password' }}"
+                   class="form-control @error('password_confirmation') is-invalid @enderror"
+                   id="password_confirmation"
+                   placeholder="{{ __('Confirm Password') }}"
+                   required
+                   autocomplete="new-password">
             <div class="input-group-text">
                 <i class="bi bi-lock"></i>
             </div>
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    wire:click="togglePassword('confirmation')">
+                <i class="bi {{ $showPasswordConfirmation ? 'bi-eye-slash' : 'bi-eye' }}"></i>
+            </button>
             @error('password_confirmation')
                 <span class="invalid-feedback">{{ $message }}</span>
             @enderror
